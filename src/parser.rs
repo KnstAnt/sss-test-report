@@ -71,9 +71,10 @@ impl Report {
                 }
             })
             .collect();
-        let criteria = Report::convert(workbook.get("StabilityCriteria").ok_or(
-            Error::FromString(format!("Report get_target error: no table StabilityCriteria!")),
-        )?);
+        let criteria =
+            Report::convert(workbook.get("StabilityCriteria").ok_or(Error::FromString(
+                format!("Report get_target error: no table StabilityCriteria!"),
+            ))?);
         self.criteria_target = criteria
             .iter()
             .filter_map(|v| {
@@ -116,12 +117,17 @@ impl Report {
                 "Тяжеловесный груз (20 т/м2). Отправление", "Дополнительные расчеты остойчивости, выполненные в связи с изменением и увеличением осадки. (2020)",
                 "Контейнеры 12 т/ТЕU. Прибытие", "Буклет остойчивости",
                 "Зерно 65 фут3/т. Прибытие", "Информация об остойчивости судна при перевозке зерна",]).to_string());
-        */
         let formatter = crate::formatter::Formatter::new(Page::new(
             Displacement::new(&self.parameters(&[2, 32, 56, 12, 1, 52])).to_string(),
             Some(1),
         ));
         std::fs::write(format!("{}", path), formatter.print()).expect("Unable to write {path}");
+        */
+        std::fs::write(
+            format!("{}", path),
+            Displacement::new(&self.parameters(&[2, 32, 56, 12, 1, 52])).to_string(),
+        )
+        .expect("Unable to write {path}");
         std::thread::sleep(std::time::Duration::from_secs(1));
         println!("Parser write_to_file end");
         Ok(())
