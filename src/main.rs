@@ -23,7 +23,13 @@ fn main() {
         //       println!("{}", error.to_string());
         return;
     }
-    if let Err(error) = report.get_results() {
+    if let Err(error) = report.get_ship_wide() {
+        let mut stdout = io::stdout().lock();
+        stdout.write_all(error.to_string().as_bytes()).unwrap();
+        //       println!("{}", error.to_string());
+        return;
+    }
+    if let Err(error) = report.get_result() {
         let mut stdout = io::stdout().lock();
         stdout.write_all(error.to_string().as_bytes()).unwrap();
         //       println!("{}", error.to_string());

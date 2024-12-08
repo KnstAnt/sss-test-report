@@ -4,11 +4,12 @@ pub struct Table {
     header: Vec<String>,
     content: Vec<Vec<String>>,
     values: Vec<(Option<f64>, Option<f64>)>,
+    ship_wide: f64,
 }
 //
 impl Table {
     //
-    pub fn new(content: &[&[&str]], values: &[(Option<f64>, Option<f64>)]) -> Self {
+    pub fn new(content: &[&[&str]], values: &[(Option<f64>, Option<f64>)], ship_wide: f64) -> Self {
         Self::new_header(
             &vec![
                 "№",
@@ -23,6 +24,7 @@ impl Table {
             ],
             content,
             values,
+            ship_wide,
         )
     }
     //
@@ -30,6 +32,7 @@ impl Table {
         header: &[&str],
         content: &[&[&str]],
         values: &[(Option<f64>, Option<f64>)],
+        ship_wide: f64,
     ) -> Self {
         Self {
             header: header.iter().map(|s| s.to_string()).collect(),
@@ -38,6 +41,7 @@ impl Table {
                 .map(|v| v.iter().map(|s| s.to_string()).collect())
                 .collect(),
             values: Vec::from(values),
+            ship_wide,
         }
     }
 }
