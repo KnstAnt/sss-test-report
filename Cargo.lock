@@ -92,9 +92,10 @@ dependencies = [
 
 [[package]]
 name = "api-tools"
-version = "0.0.6"
-source = "git+https://github.com/a-givertzman/rust-api-tools.git?branch=Socket-Message#58dbf550be107308b736e6ae47eaaa29189d675a"
+version = "0.2.0"
+source = "git+https://github.com/a-givertzman/rust-api-tools.git?tag=0.2.0#87d57ecbf348d5f41a4237e0c9fe9ad73f0d45c2"
 dependencies = [
+ "chrono",
  "debugging 0.0.1 (git+https://github.com/a-givertzman/rust-debuging.git?tag=0.0.1)",
  "env_logger",
  "indexmap",

@@ -80,7 +80,7 @@ impl Content for Table {
             let (delta_result_abs, delta_result_percent) = match (target, result) {
                 (Some(target), Some(result)) => {
                     let delta = (result - target).abs();
-                    (Some(delta), Some(delta * 100. / target))
+                    (Some(delta), Some((delta * 100. / target).abs()))
                 }
                 _ => (None, None),
             };
@@ -103,14 +103,14 @@ impl Content for Table {
             let name = &content[1];
             let unit = print_str(&content.get(2));
             let (limit_res1, limit_str1) = process_limit(&content.get(3));
-            let (limit_res2, limit_str2) = process_limit(&content.last());
+            let (limit_res2, limit_str2) = process_limit(&content.get(4));
             let state = match (limit_res1, limit_res2) {
                 (Some(false), _) | (_, Some(false)) => "-",
                 (None, None) => "",
                 _ => "+",
             };
             let delta_result_percent = print_value(delta_result_percent);
-            string += &format!("|{n}|{name}|{unit}|{target}|{result}|{delta_result_percent}|{limit_str1}|{limit_str2}|{state}|");
+            string += &format!("|{n}|{name}|{unit}|{target}|{result}|{delta_result_percent}|{limit_str1}|{limit_str2}|{state}|\n");
         }
         string + "  \n"
     }
