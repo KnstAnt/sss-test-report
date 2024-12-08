@@ -5,7 +5,7 @@ pub struct Displacement {
 }
 //
 impl Displacement {
-    pub fn new(values: &[(Option<f64>, Option<f64>)]) -> Self {
+    pub fn new(values: &[(Option<f64>, Option<f64>)], ship_wide: f64) -> Self {
         Self {
             table: Table::new(
                 &[&["2", "Водоизмещение весовое", "т", "±2 %"], 	
@@ -14,8 +14,9 @@ impl Displacement {
                             &["12", "Аппликата центра тяжести", "м", "±1 % / 5 см"],	
                             &["1", "Аппликата центра тяжести исправленная", "м"],					
                             &["52", "Ордината центра тяжести", "м", "±0,5 % ширины судна / 5 см"]], 
-                values
-            ),
+                values,
+                ship_wide,
+            ),            
         }
     }
 }

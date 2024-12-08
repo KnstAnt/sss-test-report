@@ -13,6 +13,7 @@ use std::collections::HashMap;
 pub struct Report {
     ship_id: usize,
     api_server: ApiServer,
+    ship_wide: Option<f64>,
     strength_target: Vec<(f64, f64, f64)>, //dX, SF, BM
     lever_diagram_target: Vec<(f64, f64)>, //angle, level
     criteria_target: HashMap<i32, f64>,    //id, value
@@ -27,6 +28,7 @@ impl Report {
         Self {
             ship_id,
             api_server,
+            ship_wide: None,
             strength_target: Vec::new(),
             lever_diagram_target: Vec::new(),
             criteria_target: HashMap::new(),
@@ -71,9 +73,10 @@ impl Report {
                 }
             })
             .collect();
-        let criteria = Report::convert(workbook.get("StabilityCriteria").ok_or(
-            Error::FromString(format!("Report get_target error: no table StabilityCriteria!")),
-        )?);
+        let criteria =
+            Report::convert(workbook.get("StabilityCriteria").ok_or(Error::FromString(
+                format!("Report get_target error: no table StabilityCriteria!"),
+            ))?);
         self.criteria_target = criteria
             .iter()
             .filter_map(|v| {
@@ -98,11 +101,20 @@ impl Report {
         Ok(())
     }
     //
-    pub fn get_results(&mut self) -> Result<(), Error> {
+    pub fn get_result(&mut self) -> Result<(), Error> {
         self.criterion_result =
             crate::db::api_server::get_criterion_data(&mut self.api_server, self.ship_id)?.data();
         self.parameters_result =
             crate::db::api_server::get_parameters_data(&mut self.api_server, self.ship_id)?.data();
+        Ok(())
+    }
+    //
+    pub fn get_ship_wide(&mut self) -> Result<(), Error> {
+        self.ship_wide = crate::db::api_server::get_ship_wide(&mut self.api_server, self.ship_id)
+            .map_err(|e| format!("Parser get_ship_wide error: {e}"))?
+            .data()
+            .get("MouldedBreadth")
+            .copied();
         Ok(())
     }
     //
@@ -118,7 +130,7 @@ impl Report {
                 "Зерно 65 фут3/т. Прибытие", "Информация об остойчивости судна при перевозке зерна",]).to_string());
         */
         let formatter = crate::formatter::Formatter::new(Page::new(
-            Displacement::new(&self.parameters(&[2, 32, 56, 12, 1, 52])).to_string(),
+            Displacement::new(&self.parameters(&[2, 32, 56, 12, 1, 52]), self.ship_wide.unwrap()).to_string(),
             Some(1),
         ));
         std::fs::write(format!("{}", path), formatter.print()).expect("Unable to write {path}");

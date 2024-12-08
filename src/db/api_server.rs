@@ -5,6 +5,7 @@ use api_tools::client::api_query::*;
 use api_tools::client::api_request::*;
 
 use super::criterion::DataRowArray;
+use super::criterion::DataShipArray;
 
 pub struct ApiServer {
     database: String,
@@ -59,8 +60,22 @@ pub fn get_parameters_data(api_server: &mut ApiServer, ship_id: usize) -> Result
                 ship_id
             ))
             .map_err(|e| {
+                Error::FromString(format!("api_server get_parameters_data error: {e}"))
+            })?
+    )
+    .map_err(|e| Error::FromString(format!("api_server get_parameters_data error: {e}")))
+}
+//
+pub fn get_ship_wide(api_server: &mut ApiServer, ship_id: usize) -> Result<DataShipArray, Error> {
+    DataShipArray::parse(
+        &api_server
+            .fetch(&format!(
+                "SELECT value FROM ship_parameters WHERE key='MouldedBreadth' AND ship_id={};",
+                ship_id
+            ))
+            .map_err(|e| {
                 Error::FromString(format!("api_server get_criterion_data error: {e}"))
             })?
     )
-    .map_err(|e| Error::FromString(format!("api_server get_criterion_data error: {e}")))
+    .map_err(|e| Error::FromString(format!("api_server get_ship_wide error: {e}")))
 }
