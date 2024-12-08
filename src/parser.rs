@@ -115,6 +115,9 @@ impl Report {
             .data()
             .get("MouldedBreadth")
             .copied();
+        if self.ship_wide.is_none() || self.ship_wide.unwrap() <= 0. {
+            return Err(Error::FromString(format!("Parser get_ship_wide error: ship_wide {:?}", self.ship_wide)));
+        }
         Ok(())
     }
     //
@@ -136,7 +139,7 @@ impl Report {
         */
         std::fs::write(
             format!("{}", path),
-            Displacement::new(&self.parameters(&[2, 32, 56, 12, 1, 52])).to_string(),
+            Displacement::new(&self.parameters(&[2, 32, 56, 12, 1, 52]), self.ship_wide.unwrap()).to_string(),
         )
         .expect("Unable to write {path}");
         std::thread::sleep(std::time::Duration::from_secs(1));

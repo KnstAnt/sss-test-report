@@ -73,21 +73,30 @@ impl Content for Table {
                 None
             }
         };
-        let print_value = |v: Option<f64>| v.map_or("".to_string(), |v| v.to_string());
+        let print_abs = |v: Option<f64>| v.map_or("".to_string(), |v| format!("{:.3}", v));
+        let print_percent = |v: Option<f64>| v.map_or("".to_string(), |v| format!("{:.2}", v));
         let print_str = |v: &Option<&String>| v.map_or("".to_owned(), |v| v.to_string());
         for content in self.content {
             let &(target, result) = values.next().expect("Content table error: no values!");
             let (delta_result_abs, delta_result_percent) = match (target, result) {
                 (Some(target), Some(result)) => {
                     let delta = (result - target).abs();
-                    (Some(delta), Some((delta * 100. / target).abs()))
+                    (Some(delta), Some(delta * 100. / target))
                 }
                 _ => (None, None),
             };
             let process_limit = |limit: &Option<&String>| -> (Option<bool>, String){
                 let limit_res = if let Some(limit) = limit {
                     if limit.contains('%') {
-                        check_limit(delta_result_percent, limit)
+                        if limit.contains("ширины судна") {
+                            if let (Some(delta), Some(limit)) = (delta_result_abs, parse_limit(limit)) {  
+                                Some(delta <= self.ship_wide*limit/100.)
+                            } else {
+                                None
+                            }
+                        } else {
+                            check_limit(delta_result_percent, limit)
+                        }
                     } else {
                         check_limit(delta_result_abs, limit)
                     }
@@ -97,20 +106,20 @@ impl Content for Table {
                 let limit_str = print_str(limit);
                 (limit_res, limit_str)
             };
-            let target = print_value(target);
-            let result = print_value(result);
+            let target = print_abs(target);
+            let result = print_abs(result);
             let n = &content[0];
             let name = &content[1];
             let unit = print_str(&content.get(2));
             let (limit_res1, limit_str1) = process_limit(&content.get(3));
-            let (limit_res2, limit_str2) = process_limit(&content.get(4));
+            let (limit_res2, limit_str2) = process_limit(&content.last());
             let state = match (limit_res1, limit_res2) {
                 (Some(false), _) | (_, Some(false)) => "-",
                 (None, None) => "",
                 _ => "+",
             };
-            let delta_result_percent = print_value(delta_result_percent);
-            string += &format!("|{n}|{name}|{unit}|{target}|{result}|{delta_result_percent}|{limit_str1}|{limit_str2}|{state}|\n");
+            let delta_result_percent = print_percent(delta_result_percent);
+            string += &format!("|{n}|{name}|{unit}|{target}|{result}|{delta_result_percent}|{limit_str1}|{limit_str2}|{state}|");
         }
         string + "  \n"
     }
