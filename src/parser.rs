@@ -2,7 +2,7 @@
 use crate::content::displacement::Displacement;
 //use crate::content::general::General;
 //use crate::content::list_of_calculations::ListOfCalculations;
-use crate::content::Content;
+use crate::content::{chart::*, Content};
 use crate::error::Error;
 use crate::formatter::Page;
 use crate::ApiServer;
@@ -139,7 +139,7 @@ impl Report {
         */
         std::fs::write(
             format!("{}", path),
-            Displacement::new(&self.parameters(&[2, 32, 56, 12, 1, 52]), self.ship_wide.unwrap()).to_string(),
+            Displacement::new(&self.parameters(&[2, 32, 56, 12, 1, 52]), self.ship_wide.unwrap()).to_string() + "\n" + &chart(),
         )
         .expect("Unable to write {path}");
         std::thread::sleep(std::time::Duration::from_secs(1));
