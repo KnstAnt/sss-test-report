@@ -70,7 +70,7 @@ pub fn get_ship_wide(api_server: &mut ApiServer, ship_id: usize) -> Result<DataS
     DataShipArray::parse(
         &api_server
             .fetch(&format!(
-                "SELECT value FROM ship_parameters WHERE key='MouldedBreadth' AND ship_id={};",
+                "SELECT key, value FROM ship_parameters WHERE key='MouldedBreadth' AND ship_id={};",
                 ship_id
             ))
             .map_err(|e| {
