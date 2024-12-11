@@ -102,7 +102,7 @@ pub fn get_strength_result(
     let strength_result = StrengthResultDataArray::parse(
         &api_server
             .fetch(&format!(
-                "SELECT value_shear_force as sf, value_bending_moment as bm FROM computed_frame_space WHERE ship_id={} ORDER BY index;",
+                "SELECT value_shear_force as sf, value_bending_moment as bm FROM result_strength WHERE ship_id={} ORDER BY index;",
                 ship_id
             ))
             .map_err(|e| Error::FromString(format!("api_server get_strength_result strength_result error: {e}")))?,
