@@ -1055,6 +1055,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "splines"
+version = "4.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "35abfe290b05ab81e1773eb1849e23d024b2571640444d5024308871308ae805"
+
+[[package]]
 name = "sss-test-report"
 version = "0.1.0"
 dependencies = [
@@ -1067,6 +1073,7 @@ dependencies = [
  "log",
  "serde",
  "serde_json",
+ "splines",
  "testing 0.1.1 (git+https://github.com/a-givertzman/rust-testing.git)",
  "thiserror",
 ]

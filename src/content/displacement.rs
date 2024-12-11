@@ -23,7 +23,7 @@ impl Displacement {
 //
 impl Content for Displacement {
     //
-    fn to_string(self) -> String {
-        "# Водоизмещение  \n".to_string() + &self.table.to_string()
+    fn to_string(self) -> Result<String, crate::error::Error> {
+        Ok("# Водоизмещение  \n".to_string() + &self.table.to_string()?)
     }
 }

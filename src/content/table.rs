@@ -48,7 +48,7 @@ impl Table {
 //
 impl Content for Table {
     //
-    fn to_string(self) -> String {
+    fn to_string(self) -> Result<String, crate::error::Error> {
         let mut string = self
             .header
             .iter()
@@ -121,6 +121,6 @@ impl Content for Table {
             let delta_result_percent = print_percent(delta_result_percent);
             string += &format!("|{n}|{name}|{unit}|{target}|{result}|{delta_result_percent}|{limit_str1}|{limit_str2}|{state}|\n");
         }
-        string + "  \n"
+        Ok(string + "  \n")
     }
 }

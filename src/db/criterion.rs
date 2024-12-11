@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-use super::serde_parser::IFromJson;
+use super::DataArray;
 // Структура для парсинга данных критериев и параметров
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct DataRow {
@@ -50,17 +50,5 @@ impl DataShipArray {
             .filter(|v| v.value.is_some())
             .map(|v| (v.key.clone(), v.value.unwrap()))
             .collect()
-    }
-}
-/// Массив ключ + значение
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct DataArray<T> {
-    pub data: Vec<T>,
-    pub error: HashMap<String, String>,
-}
-//
-impl<T> IFromJson for DataArray<T> {
-    fn error(&self) -> Option<&String> {
-        self.error.values().next()
     }
 }

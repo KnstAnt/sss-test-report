@@ -4,7 +4,7 @@ use crate::content::displacement::Displacement;
 //use crate::content::list_of_calculations::ListOfCalculations;
 use crate::content::{chart::*, Content};
 use crate::error::Error;
-use crate::formatter::Page;
+//use crate::formatter::Page;
 use crate::ApiServer;
 use calamine::Range;
 use calamine::{open_workbook, Data, Reader, Xlsx};
@@ -15,6 +15,7 @@ pub struct Report {
     api_server: ApiServer,
     ship_wide: Option<f64>,
     strength_target: Vec<(f64, f64, f64)>, //dX, SF, BM
+    strength_result: Vec<(f64, f64, f64)>, //dX, SF, BM
     lever_diagram_target: Vec<(f64, f64)>, //angle, level
     criteria_target: HashMap<i32, f64>,    //id, value
     parameters_target: HashMap<i32, f64>,  //id, value
@@ -30,6 +31,7 @@ impl Report {
             api_server,
             ship_wide: None,
             strength_target: Vec::new(),
+            strength_result: Vec::new(),
             lever_diagram_target: Vec::new(),
             criteria_target: HashMap::new(),
             parameters_target: HashMap::new(),
@@ -106,6 +108,8 @@ impl Report {
             crate::db::api_server::get_criterion_data(&mut self.api_server, self.ship_id)?.data();
         self.parameters_result =
             crate::db::api_server::get_parameters_data(&mut self.api_server, self.ship_id)?.data();
+        self.strength_result =
+            crate::db::api_server::get_strength_result(&mut self.api_server, self.ship_id)?;
         Ok(())
     }
     //
@@ -116,7 +120,10 @@ impl Report {
             .get("MouldedBreadth")
             .copied();
         if self.ship_wide.is_none() || self.ship_wide.unwrap() <= 0. {
-            return Err(Error::FromString(format!("Parser get_ship_wide error: ship_wide {:?}", self.ship_wide)));
+            return Err(Error::FromString(format!(
+                "Parser get_ship_wide error: ship_wide {:?}",
+                self.ship_wide
+            )));
         }
         Ok(())
     }
@@ -137,11 +144,13 @@ impl Report {
         ));
         std::fs::write(format!("{}", path), formatter.print()).expect("Unable to write {path}");
         */
-        std::fs::write(
-            format!("{}", path),
-            Displacement::new(&self.parameters(&[2, 32, 56, 12, 1, 52]), self.ship_wide.unwrap()).to_string() + "\n" + &chart(),
+        let mut content = Displacement::new(
+            &self.parameters(&[2, 32, 56, 12, 1, 52]),
+            self.ship_wide.unwrap(),
         )
-        .expect("Unable to write {path}");
+        .to_string()?;
+        content = content + "\n" + &ChartStrength::new(&self.strength_target, &self.strength_result).to_string()?;
+        std::fs::write(format!("{}", path), content).expect("Unable to write {path}");
         std::thread::sleep(std::time::Duration::from_secs(1));
         println!("Parser write_to_file end");
         Ok(())
