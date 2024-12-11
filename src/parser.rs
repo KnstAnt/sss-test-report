@@ -2,7 +2,7 @@
 use crate::content::displacement::Displacement;
 //use crate::content::general::General;
 //use crate::content::list_of_calculations::ListOfCalculations;
-use crate::content::{chart::*, Content};
+use crate::content::{chart_strength::*, Content};
 use crate::error::Error;
 use crate::formatter::Page;
 use crate::ApiServer;
