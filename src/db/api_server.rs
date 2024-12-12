@@ -125,7 +125,7 @@ pub fn get_strength_limit(
     Ok(StrengthLimitDataArray::parse(
         &api_server
             .fetch(&format!(
-                "SELECT parameter_id as id, result FROM strength_force_limit WHERE ship_id={};",
+                "SELECT frame_x as fr, value, limit_type::TEXT, limit_area::TEXT, force_type::TEXT FROM strength_force_limit WHERE ship_id={};",
                 ship_id
             ))
             .map_err(|e| Error::FromString(format!("api_server get_strength_limit error: {e}")))?,
