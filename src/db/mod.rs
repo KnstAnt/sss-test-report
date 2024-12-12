@@ -7,6 +7,7 @@ mod criterion;
 mod serde_parser;
 mod computed_frame;
 mod strength_result;
+mod strength_limit;
 
 /// Массив ключ + значение
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

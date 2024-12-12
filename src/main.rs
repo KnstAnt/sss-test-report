@@ -29,7 +29,7 @@ fn main() {
         //       println!("{}", error.to_string());
         return;
     }
-    if let Err(error) = report.get_result() {
+    if let Err(error) = report.get_from_db() {
         let mut stdout = io::stdout().lock();
         stdout.write_all(error.to_string().as_bytes()).unwrap();
         //       println!("{}", error.to_string());

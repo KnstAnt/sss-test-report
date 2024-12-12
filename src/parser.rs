@@ -1,8 +1,9 @@
 //! Класс-коллекция таблиц. Проверяет данные и выполняет их запись
 use crate::content::displacement::Displacement;
+use crate::content::strength::Strength;
 //use crate::content::general::General;
 //use crate::content::list_of_calculations::ListOfCalculations;
-use crate::content::{chart::*, Content};
+use crate::content::Content;
 use crate::error::Error;
 //use crate::formatter::Page;
 use crate::ApiServer;
@@ -13,9 +14,11 @@ use std::collections::HashMap;
 pub struct Report {
     ship_id: usize,
     api_server: ApiServer,
+    general: HashMap<String, String>,
     ship_wide: Option<f64>,
-    strength_target: Vec<(f64, f64, f64)>, //dX, SF, BM
-    strength_result: Vec<(f64, f64, f64)>, //dX, SF, BM
+    strength_target: Vec<(f64, i32, f64, f64)>, //x, fr, SF, BM
+    strength_result: Vec<(f64, f64, f64)>, //x, SF, BM
+    strength_limit: Vec<(f64, f64, f64, f64, f64)>, // fr, bm_min, bm_max, sf_min, sf_max
     lever_diagram_target: Vec<(f64, f64)>, //angle, level
     criteria_target: HashMap<i32, f64>,    //id, value
     parameters_target: HashMap<i32, f64>,  //id, value
@@ -29,9 +32,11 @@ impl Report {
         Self {
             ship_id,
             api_server,
+            general: HashMap::new(),
             ship_wide: None,
             strength_target: Vec::new(),
             strength_result: Vec::new(),
+            strength_limit: Vec::new(),
             lever_diagram_target: Vec::new(),
             criteria_target: HashMap::new(),
             parameters_target: HashMap::new(),
@@ -47,6 +52,9 @@ impl Report {
             .into_iter()
             .filter(|(_, range)| range.used_cells().count() > 0)
             .collect();
+        self.general = Report::convert(workbook.get("General").ok_or(Error::FromString(format!(
+            "Report get_target error: no table General!"
+        )))?).iter().map(|v| (v[0].clone(), v[1].clone())).collect();
         let strength = Report::convert(workbook.get("SF&BM").ok_or(Error::FromString(format!(
             "Report get_target error: no table SF&BM!"
         )))?);
@@ -55,10 +63,11 @@ impl Report {
             .filter_map(|v| {
                 match (
                     v[0].parse::<f64>(),
+                    v[1].parse::<i32>(),
                     v[2].parse::<f64>(),
                     v[3].parse::<f64>(),
                 ) {
-                    (Ok(l), Ok(sf), Ok(bm)) => Some((l, sf, bm)),
+                    (Ok(x), Ok(fr), Ok(sf), Ok(bm)) => Some((x, fr, sf, bm)),
                     _ => None, //Err(Error::FromString(format!("Report parse error: strength {:?}", v))),
                 }
             })
@@ -103,13 +112,20 @@ impl Report {
         Ok(())
     }
     //
-    pub fn get_result(&mut self) -> Result<(), Error> {
+    pub fn get_from_db(&mut self) -> Result<(), Error> {
         self.criterion_result =
             crate::db::api_server::get_criterion_data(&mut self.api_server, self.ship_id)?.data();
         self.parameters_result =
             crate::db::api_server::get_parameters_data(&mut self.api_server, self.ship_id)?.data();
         self.strength_result =
             crate::db::api_server::get_strength_result(&mut self.api_server, self.ship_id)?;
+        let area = if self.general.get("Акватория").unwrap().contains("Море") {
+            "sea"
+        } else {
+            "harbor"
+        };
+        self.strength_limit =
+            crate::db::api_server::get_strength_limit(&mut self.api_server, self.ship_id, area)?;
         Ok(())
     }
     //
@@ -149,7 +165,7 @@ impl Report {
             self.ship_wide.unwrap(),
         )
         .to_string()?;
-        content = content + "\n" + &ChartStrength::new(&self.strength_target, &self.strength_result).to_string()?;
+        content = content + "\n" + &Strength::new_named(&self.strength_result, &self.strength_target, &self.strength_limit).to_string()?;
         std::fs::write(format!("{}", path), content).expect("Unable to write {path}");
         std::thread::sleep(std::time::Duration::from_secs(1));
         println!("Parser write_to_file end");

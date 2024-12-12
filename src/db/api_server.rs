@@ -7,6 +7,7 @@ use api_tools::client::api_request::*;
 use super::computed_frame::ComputedFrameDataArray;
 use super::criterion::DataRowArray;
 use super::criterion::DataShipArray;
+use super::strength_limit::StrengthLimitDataArray;
 use super::strength_result::StrengthResultDataArray;
 
 pub struct ApiServer {
@@ -114,4 +115,20 @@ pub fn get_strength_result(
         .zip(strength_result.data().iter())
         .map(|(x, (sf, bm))| (*x, *sf, *bm))
         .collect())
+}
+//
+pub fn get_strength_limit(
+    api_server: &mut ApiServer,
+    ship_id: usize,
+    area: &str,
+) -> Result<Vec<(f64, f64, f64, f64, f64)>, Error> {
+    Ok(StrengthLimitDataArray::parse(
+        &api_server
+            .fetch(&format!(
+                "SELECT parameter_id as id, result FROM strength_force_limit WHERE ship_id={};",
+                ship_id
+            ))
+            .map_err(|e| Error::FromString(format!("api_server get_strength_limit error: {e}")))?,
+    )
+    .map_err(|e| Error::FromString(format!("api_server get_strength_limit error: {e}")))?.data(area))
 }

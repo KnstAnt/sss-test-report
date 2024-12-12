@@ -2,10 +2,11 @@ use crate::error::Error;
 
 //pub mod general;
 //pub mod list_of_calculations;
-pub mod table;
+pub mod misc;
 pub mod displacement;
-pub mod chart;
-pub mod curve1d;
+pub mod draught;
+pub mod strength;
+pub mod stability;
 
 //
 pub trait Content {

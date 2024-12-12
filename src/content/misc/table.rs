@@ -1,5 +1,3 @@
-use super::Content;
-
 pub struct Table {
     header: Vec<String>,
     content: Vec<Vec<String>>,
@@ -44,11 +42,8 @@ impl Table {
             ship_wide,
         }
     }
-}
-//
-impl Content for Table {
     //
-    fn to_string(self) -> Result<String, crate::error::Error> {
+    pub fn to_string(self) -> Result<String, crate::error::Error> {
         let mut string = self
             .header
             .iter()

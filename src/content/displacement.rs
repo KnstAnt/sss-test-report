@@ -1,4 +1,4 @@
-use super::{table::Table, Content};
+use super::{misc::Table, Content};
 
 pub struct Displacement {
     table: Table,
@@ -24,6 +24,6 @@ impl Displacement {
 impl Content for Displacement {
     //
     fn to_string(self) -> Result<String, crate::error::Error> {
-        Ok("# Водоизмещение  \n".to_string() + &self.table.to_string()?)
+        Ok("## Водоизмещение  \n".to_string() + &self.table.to_string()?)
     }
 }
