@@ -117,7 +117,7 @@ pub fn get_strength_result(
         .map(|(x, (sf, bm))| (*x, *sf, *bm))
         .collect())
 }
-//
+// (frame_x, bm_min, bm_max, sf_min, sf_max)
 pub fn get_strength_limit(
     api_server: &mut ApiServer,
     ship_id: usize,
@@ -126,7 +126,7 @@ pub fn get_strength_limit(
     Ok(StrengthLimitDataArray::parse(
         &api_server
             .fetch(&format!(
-                "SELECT frame_x as fr, value, limit_type::TEXT, limit_area::TEXT, force_type::TEXT FROM strength_force_limit WHERE ship_id={};",
+                "SELECT frame_x, value, limit_type::TEXT, limit_area::TEXT, force_type::TEXT FROM strength_force_limit WHERE ship_id={};",
                 ship_id
             ))
             .map_err(|e| Error::FromString(format!("api_server get_strength_limit error: {e}")))?,

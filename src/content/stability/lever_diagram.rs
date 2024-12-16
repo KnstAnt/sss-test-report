@@ -33,6 +33,6 @@ impl LeverDiagram {
                 target, result, delta_result_percent, limit_p, limit_abs
             );
         }
-        Ok(string + "  \n")
+        Ok(string)
     }
 }

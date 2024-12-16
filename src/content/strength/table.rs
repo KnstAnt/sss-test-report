@@ -40,15 +40,15 @@ impl Table {
             + "|\n";
         for (fr, min, target, result, max, limit) in self.values {
             let delta_result_percent = (result - target).abs() * 100. / target;
-            let state = match delta_result_percent <= limit {
+            let state = match delta_result_percent.abs() <= limit {
                 false => "-",
                 true => "+",
             };
             string += &format!(
                 "|{fr}|{:.3}|{:.3}|{:.3}|{:.3}|{:.2}| ±{} % | {state} |\n",
-                min, target, result, max, limit as i32, delta_result_percent
+                min, target, result, max, delta_result_percent, limit as i32,
             );
         }
-        Ok(string + "  \n")
+        Ok(string)
     }
 }

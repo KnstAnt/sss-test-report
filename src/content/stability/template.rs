@@ -75,15 +75,18 @@ impl Content for Template {
         let print_percent = |v: Option<f64>| v.map_or("".to_string(), |v| format!("{:.2}", v));
         let print_str = |v: &Option<String>| v.clone().map_or("".to_owned(), |v| v.to_string());
         for data in self.data {
+            dbg!(&data);
             let (target, result) = (data.target, data.result);
             let (delta_result_abs, delta_result_percent) = match (target, result) {
                 (Some(target), Some(result)) => {
                     let delta = (result - target).abs();
+                    dbg!(&result, &target, &delta);
                     (Some(delta), Some(delta * 100. / target))
                 }
                 _ => (None, None),
             };
             let process_limit = |limit: &Option<String>| -> (Option<bool>, String) {
+        //        dbg!(&delta_result_percent, &delta_result_abs, &limit);
                 let limit_res = if let Some(limit) = limit {
                     if limit.contains('%') {
                         if limit.contains("ширины судна") {
@@ -104,6 +107,7 @@ impl Content for Template {
                 let limit_str = print_str(&limit);
                 (limit_res, limit_str.to_owned())
             };
+            dbg!(&data.limit_percent);
             let target = print_abs(target);
             let result = print_abs(result);
             let id = data.id;
@@ -111,14 +115,16 @@ impl Content for Template {
             let unit = data.unit;
             let (limit_res_p, limit_str_p) = process_limit(&data.limit_percent);
             let (limit_res_abs, limit_str_abs) = process_limit(&data.limit_abs);
+           // dbg!(&data.limit_abs, &limit_res_abs, &limit_str_abs);
             let state = match (limit_res_p, limit_res_abs) {
                 (Some(false), _) | (_, Some(false)) => "-",
                 (None, None) => "",
                 _ => "+",
             };
             let delta_result_percent = print_percent(delta_result_percent);
+           // dbg!(&target, &limit_str_abs);
             string += &format!("|{id}|{name}|{unit}|{target}|{result}|{delta_result_percent}|{limit_str_p}|{limit_str_abs}|{state}|\n");
         }
-        Ok(string + "  \n")
+        Ok(string)
     }
 }

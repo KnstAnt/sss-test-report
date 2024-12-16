@@ -106,24 +106,29 @@ impl Report {
         ))?);
         let mut buf = Vec::new();
         for row in parameters.into_iter().rev() {
-            if row.len() > 1 {
-                buf.push(row);
-                continue;
-            }
             if row[0].contains("Водоизмещение") {
+                buf.reverse();
                 self.displacement_target = buf;
+                dbg!(&self.displacement_target);
                 buf = Vec::new();
                 continue;
             }
             if row[0].contains("Осадки") {
+                buf.reverse();
                 self.draught_target = buf;
+                dbg!(&self.draught_target);
                 buf = Vec::new();
                 continue;
             }
             if row[0].contains("Остойчивость") {
+                buf.reverse();
                 self.parameters_target = buf;
+                dbg!(&self.parameters_target);
                 buf = Vec::new();
                 continue;
+            }
+            if row.len() > 1 {
+                buf.push(row);
             }
         }
         Ok(())
@@ -165,8 +170,9 @@ impl Report {
     //
     pub fn write(self, path: &str) -> Result<(), Error> {
         println!("Parser write_to_file begin");
+        dbg!(&self.parameters_target);
         let mut content = crate::content::stability::displacement::Displacement::from_data(
-            &self.parameters_target,
+            &self.displacement_target,
             &self.parameters_result,
             self.ship_wide.unwrap(),
         )?.to_string()? + "\n";
@@ -180,8 +186,8 @@ impl Report {
                 &self.strength_target,
                 &self.strength_limit,
             ).to_string()? + "\n"); 
-        content += &(crate::content::stability::draught::Draught::from_data(
-            &self.draught_target,
+        content += &(crate::content::stability::parameters::Parameters::from_data(
+            &self.parameters_target,
             &self.parameters_result,
             self.ship_wide.unwrap(),
         )?.to_string()? + "\n");        
@@ -195,7 +201,7 @@ impl Report {
         let data: Vec<&[Data]> = data.rows().filter(|v| !v.is_empty()).collect();
         let data = data
             .iter()
-            .map(|v| v.iter().map(|v| v.to_string()).collect())
+            .map(|v| v.iter().map(|v| v.to_string().replace(" \u{a0}", "")).collect())
             .collect();
         data
     }

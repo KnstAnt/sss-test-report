@@ -116,6 +116,6 @@ impl Table {
             let delta_result_percent = print_percent(delta_result_percent);
             string += &format!("|{n}|{name}|{unit}|{target}|{result}|{delta_result_percent}|{limit_str1}|{limit_str2}|{state}|\n");
         }
-        Ok(string + "  \n")
+        Ok(string)
     }
 }

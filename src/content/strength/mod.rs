@@ -26,7 +26,7 @@ impl Strength {
         result: &[(f64, f64, f64)],
         // x, fr, sf, bm, limit_%
         target: &[(f64, i32, f64, f64, f64)],
-        // fr, bm_min, bm_max, sf_min, sf_max
+        // (frame_x, bm_min, bm_max, sf_min, sf_max)
         limit: &[(f64, f64, f64, f64, f64)],
     ) -> Self {
         let (sf_result, bm_result): (Vec<_>, Vec<_>) = result
@@ -39,10 +39,10 @@ impl Strength {
             .unzip();
         let (sf_limit, bm_limit): (Vec<_>, Vec<_>) = limit
             .iter()
-            .map(|(fr, bm_min, bm_max, sf_min, sf_max)| {
+            .map(|(x, bm_min, bm_max, sf_min, sf_max)| {
                 (
-                    (*fr, *sf_min * 0.001, *sf_max * 0.001),
-                    (*fr, *bm_min * 0.001, *bm_max * 0.001),
+                    (*x, *sf_min * 0.001, *sf_max * 0.001),
+                    (*x, *bm_min * 0.001, *bm_max * 0.001),
                 )
             })
             .unzip();
@@ -65,6 +65,6 @@ impl Strength {
     }
     //
     pub fn to_string(self) -> Result<String, Error> {
-        Ok(self.shear_force.to_string()? + "\n" + &self.bending_moment.to_string()?)
+        Ok("## Прочность".to_string() + "\n" + &self.bending_moment.to_string()? + "\n" + &self.shear_force.to_string()?)
     }
 }

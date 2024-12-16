@@ -40,39 +40,40 @@ impl TableUnit {
         let id = data
             .get(0)
             .ok_or(Error::FromString(
-                format!("StabilityUnit from_data error: no id!, {:?}",
+                format!("TableUnit from_data error: no id!, {:?}",
                 data,
             )))?
+            .trim()
             .parse::<i32>()
             .map_err(|e| Error::FromString(
-                format!("StabilityUnit from_data error: id!, {:?} err:{e}",
+                format!("TableUnit from_data error: id!, data:{:?}, err:{e}",
                 data,
             )))?;
         let name = data
             .get(1)
             .ok_or(Error::FromString(
-               format!("StabilityUnit from_data error: no name!, {:?}",
+               format!("TableUnit from_data error: no name!, {:?}",
                 data,
             )))?
             .to_owned();
         let unit = data
             .get(2)
             .ok_or(Error::FromString(
-                format!("StabilityUnit from_data error: no unit!, {:?}",
+                format!("TableUnit from_data error: no unit!, {:?}",
                 data,
             )))?
             .to_owned();
         let target = data
             .get(3)
             .ok_or(Error::FromString(
-                format!("StabilityUnit from_data error: no target!, {:?}",
+                format!("TableUnit from_data error: no target!, {:?}",
                 data,
             )))?
             .parse::<f64>()
             .ok();
         let result = result.get(&id).copied();
         let limit_percent = data.get(4).map_or(None, |s| Some(s.to_owned()) );
-        let limit_abs = data.get(3).map_or(None, |s| Some(s.to_owned()) );
+        let limit_abs = data.get(5).map_or(None, |s| Some(s.to_owned()) );
         Ok(Self::new(
             id,
             name,
