@@ -28,6 +28,6 @@ impl Draught {
 impl Content for Draught {
     //
     fn to_string(self) -> Result<String, crate::error::Error> {
-        Ok("## Параметры посадки  \n".to_string() + &self.table.to_string()?)
+        Ok("## Параметры посадки\n".to_string() + &self.table.to_string()?)
     }
 }

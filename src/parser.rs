@@ -1,4 +1,5 @@
 //! Класс-коллекция таблиц. Проверяет данные и выполняет их запись
+use crate::content::stability::Stability;
 use crate::content::strength::Strength;
 //use crate::content::general::General;
 //use crate::content::list_of_calculations::ListOfCalculations;
@@ -16,6 +17,7 @@ pub struct Report {
     general: HashMap<String, String>,
     ship_wide: Option<f64>,
     strength_target: Vec<(f64, i32, f64, f64, f64)>, //x, fr, SF, BM, limit_%
+    strength_target_max: Vec<(String, f64, f64, f64)>, // name, x, value, limit_%
     strength_result: Vec<(f64, f64, f64)>,           //x, SF, BM
     strength_limit: Vec<(f64, f64, f64, f64, f64)>,  // fr, bm_min, bm_max, sf_min, sf_max
     lever_diagram_result: Vec<(f64, f64)>,           //angle, level
@@ -24,8 +26,8 @@ pub struct Report {
     displacement_target: Vec<Vec<String>>,
     draught_target: Vec<Vec<String>>,
     parameters_target: Vec<Vec<String>>,
-    criterion_result: HashMap<i32, f64>,                                      //id, value
-    parameters_result: HashMap<i32, f64>,                                     //id, value
+    criterion_result: HashMap<i32, f64>, // criterion_id, value
+    parameters_result: HashMap<i32, f64>,// parameter_id, value
 }
 //
 impl Report {
@@ -37,6 +39,7 @@ impl Report {
             general: HashMap::new(),
             ship_wide: None,
             strength_target: Vec::new(),
+            strength_target_max: Vec::new(),
             strength_result: Vec::new(),
             strength_limit: Vec::new(),
             lever_diagram_result: Vec::new(),
@@ -78,6 +81,23 @@ impl Report {
                 ) {
                     (Ok(x), Ok(fr), Ok(sf), Ok(bm), Ok(limit_p)) => Some((x, fr, sf, bm, limit_p)),
                     _ => None, //Err(Error::FromString(format!("Report parse error: strength {:?}", v))),
+                }
+            })
+            .collect();
+        let strength_max = Report::convert(workbook.get("SF&BM").ok_or(Error::FromString(format!(
+            "Report get_target error: no table SF&BM!"
+        )))?);
+        self.strength_target_max = strength_max
+            .iter()
+            .filter_map(|v| {
+                match (
+                    v[0].to_owned(),
+                    v[1].parse::<f64>(),
+                    v[2].parse::<f64>(),
+                    v[3].parse::<f64>(),
+                ) {
+                    (name, Ok(x), Ok(value), Ok(limit_p)) => Some((name, x, value, limit_p)),
+                    _ => None, //Err(Error::FromString(format!("Report parse error: strength_max {:?}", v))),
                 }
             })
             .collect();
@@ -184,13 +204,16 @@ impl Report {
         content += &(Strength::new_named(
                 &self.strength_result,
                 &self.strength_target,
+                &self.strength_target_max,
                 &self.strength_limit,
             ).to_string()? + "\n"); 
-        content += &(crate::content::stability::parameters::Parameters::from_data(
+        content += &(Stability::new_named(
             &self.parameters_target,
             &self.parameters_result,
             self.ship_wide.unwrap(),
-        )?.to_string()? + "\n");        
+            &self.lever_diagram_target,
+            &self.lever_diagram_result,
+        )?.to_string()? + "\n"); 
         std::fs::write(format!("{}", path), content).expect("Unable to write {path}");
         std::thread::sleep(std::time::Duration::from_secs(1));
         println!("Parser write_to_file end");

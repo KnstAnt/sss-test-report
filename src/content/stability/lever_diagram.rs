@@ -2,13 +2,13 @@ use crate::content::misc::{Curve, ICurve};
 
 pub struct LeverDiagram {
     // angle, dso
-    target: Vec<(i32, f64, f64, f64)>,
+    target: Vec<(f64, f64, f64, f64)>,
     result: Vec<(f64, f64)>,
 }
 //
 impl LeverDiagram {
     //
-    pub fn new(target: &[(i32, f64, f64, f64)], result: Vec<(f64, f64)>) -> Self {
+    pub fn new(target: &[(f64, f64, f64, f64)], result: &[(f64, f64)]) -> Self {
         Self {
             target: Vec::from(target),
             result: Vec::from(result),
@@ -29,8 +29,8 @@ impl LeverDiagram {
                 "-"
             };
             string += &format!(
-                "|{angle}|{:.3}|{:.3}|{:.2}| ±{:.2} % | ±{:.3} см | {state} |\n",
-                target, result, delta_result_percent, limit_p, limit_abs
+                "|{}|{:.3}|{:.3}|{:.2}| ±{:.2} % | ±{:.3} см | {state} |\n",
+                angle as i32, target, result, delta_result_percent, limit_p, limit_abs
             );
         }
         Ok(string)

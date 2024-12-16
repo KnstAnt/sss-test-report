@@ -1,16 +1,17 @@
-pub struct Table {
+pub struct TableMax {
     header: Vec<String>,
-    // fr, min, doc, calc, max, limit_%
-    values: Vec<(i32, f64, f64, f64, f64, f64)>,
+    // name, min, doc, calc, max, limit_%
+    values: Vec<(String, f64, f64, f64, f64, f64)>,
 }
 //
-impl Table {
-    // fr, min, doc, calc, max, limit_%
-    pub fn new(name: &str, values: &[(i32, f64, f64, f64, f64, f64)]) -> Self {
+impl TableMax {
+    // parameter_name, min, doc, calc, max, limit_%
+    pub fn new(name: &str, values: &[(String, f64, f64, f64, f64, f64)]) -> Self {
         Self::new_header(
             &vec![
-                "Fr",
+                "Параметр",
                 &format!("${name}_{{min}}$"),
+                "L [m]",
                 "Документация",
                 "Расчет",
                 &format!("${name}_{{max}}$"),
@@ -22,7 +23,7 @@ impl Table {
         )
     }
     //
-    pub fn new_header(header: &[&str], values: &[(i32, f64, f64, f64, f64, f64)]) -> Self {
+    pub fn new_header(header: &[&str], values: &[(String, f64, f64, f64, f64, f64)]) -> Self {
         Self {
             header: header.iter().map(|s| s.to_string()).collect(),
             values: Vec::from(values),
@@ -38,20 +39,20 @@ impl Table {
             + "|\n"
             + &(0..self.header.len()).map(|_| "|---").collect::<String>()
             + "|\n";
-        for (fr, min, target, result, max, limit) in self.values {
+        for (name, min, target, result, max, limit_p) in self.values {
             let delta = result - target;            
             let delta_result_percent = if delta > 0. {
-                delta * 100. / max
+                delta * 100. / target
             } else {
-                delta * 100. / min
+                delta * 100. / target
             };
-            let state = match delta_result_percent.abs() <= limit {
+            let state = match delta_result_percent.abs() <= limit_p {
                 false => "-",
                 true => "+",
             };
             string += &format!(
-                "|{fr}|{:.3}|{:.3}|{:.3}|{:.3}|{:.2}| ±{} % | {state} |\n",
-                min, target, result, max, delta_result_percent, limit as i32,
+                "|{name}|{:.3}|{:.3}|{:.3}|{:.3}|{:.2}| ±{} % | {state} |\n",
+                min, target, result, max, delta_result_percent, limit_p as i32,
             );
         }
         Ok(string)
