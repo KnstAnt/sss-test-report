@@ -1,5 +1,4 @@
 //! Класс-коллекция таблиц. Проверяет данные и выполняет их запись
-use crate::content::displacement::Displacement;
 use crate::content::strength::Strength;
 //use crate::content::general::General;
 //use crate::content::list_of_calculations::ListOfCalculations;
@@ -16,14 +15,17 @@ pub struct Report {
     api_server: ApiServer,
     general: HashMap<String, String>,
     ship_wide: Option<f64>,
-    strength_target: Vec<(f64, i32, f64, f64)>, //x, fr, SF, BM
-    strength_result: Vec<(f64, f64, f64)>, //x, SF, BM
-    strength_limit: Vec<(f64, f64, f64, f64, f64)>, // fr, bm_min, bm_max, sf_min, sf_max
-    lever_diagram_target: Vec<(f64, f64)>, //angle, level
-    criteria_target: HashMap<i32, f64>,    //id, value
-    parameters_target: HashMap<i32, f64>,  //id, value
-    criterion_result: HashMap<i32, f64>,
-    parameters_result: HashMap<i32, f64>,
+    strength_target: Vec<(f64, i32, f64, f64, f64)>, //x, fr, SF, BM, limit_%
+    strength_result: Vec<(f64, f64, f64)>,           //x, SF, BM
+    strength_limit: Vec<(f64, f64, f64, f64, f64)>,  // fr, bm_min, bm_max, sf_min, sf_max
+    lever_diagram_result: Vec<(f64, f64)>,           //angle, level
+    lever_diagram_target: Vec<(f64, f64, f64, f64)>, //angle, level, limit_%, limit_abs
+    criteria_target: Vec<Vec<String>>,
+    displacement_target: Vec<Vec<String>>,
+    draught_target: Vec<Vec<String>>,
+    parameters_target: Vec<Vec<String>>,
+    criterion_result: HashMap<i32, f64>,                                      //id, value
+    parameters_result: HashMap<i32, f64>,                                     //id, value
 }
 //
 impl Report {
@@ -37,9 +39,12 @@ impl Report {
             strength_target: Vec::new(),
             strength_result: Vec::new(),
             strength_limit: Vec::new(),
+            lever_diagram_result: Vec::new(),
             lever_diagram_target: Vec::new(),
-            criteria_target: HashMap::new(),
-            parameters_target: HashMap::new(),
+            criteria_target: Vec::new(),
+            displacement_target: Vec::new(),
+            draught_target: Vec::new(),
+            parameters_target: Vec::new(),
             criterion_result: HashMap::new(),
             parameters_result: HashMap::new(),
         }
@@ -52,9 +57,12 @@ impl Report {
             .into_iter()
             .filter(|(_, range)| range.used_cells().count() > 0)
             .collect();
-        self.general = Report::convert(workbook.get("General").ok_or(Error::FromString(format!(
-            "Report get_target error: no table General!"
-        )))?).iter().map(|v| (v[0].clone(), v[1].clone())).collect();
+        self.general = Report::convert(workbook.get("General").ok_or(Error::FromString(
+            format!("Report get_target error: no table General!"),
+        ))?)
+        .iter()
+        .map(|v| (v[0].clone(), v[1].clone()))
+        .collect();
         let strength = Report::convert(workbook.get("SF&BM").ok_or(Error::FromString(format!(
             "Report get_target error: no table SF&BM!"
         )))?);
@@ -66,8 +74,9 @@ impl Report {
                     v[1].parse::<i32>(),
                     v[2].parse::<f64>(),
                     v[3].parse::<f64>(),
+                    v[4].parse::<f64>(),
                 ) {
-                    (Ok(x), Ok(fr), Ok(sf), Ok(bm)) => Some((x, fr, sf, bm)),
+                    (Ok(x), Ok(fr), Ok(sf), Ok(bm), Ok(limit_p)) => Some((x, fr, sf, bm, limit_p)),
                     _ => None, //Err(Error::FromString(format!("Report parse error: strength {:?}", v))),
                 }
             })
@@ -78,37 +87,45 @@ impl Report {
         self.lever_diagram_target = lever_diagram
             .iter()
             .filter_map(|v| {
-                match (v[0].parse::<f64>(), v[1].parse::<f64>()) {
-                    (Ok(a), Ok(l)) => Some((a, l)),
+                match (
+                    v[0].parse::<f64>(),
+                    v[1].parse::<f64>(),
+                    v[2].parse::<f64>(),
+                    v[3].parse::<f64>(),
+                ) {
+                    (Ok(a), Ok(l), Ok(limit_p), Ok(limit_abs)) => Some((a, l, limit_p, limit_abs)),
                     _ => None, //Err(Error::FromString(format!("Report parse error: lever_diagram {:?}", v))),
                 }
             })
             .collect();
-        let criteria =
-            Report::convert(workbook.get("StabilityCriteria").ok_or(Error::FromString(
-                format!("Report get_target error: no table StabilityCriteria!"),
-            ))?);
-        self.criteria_target = criteria
-            .iter()
-            .filter_map(|v| {
-                match (v[0].parse::<i32>(), v[3].parse::<f64>()) {
-                    (Ok(id), Ok(v)) => Some((id, v)),
-                    _ => None, //Err(Error::FromString(format!("Report parse error: criteria {:?}", v))),
-                }
-            })
-            .collect();
+        self.criteria_target = Report::convert(workbook.get("StabilityCriteria").ok_or(Error::FromString(
+            format!("Report get_target error: no table StabilityCriteria!"),
+        ))?);
         let parameters = Report::convert(workbook.get("Parameters").ok_or(Error::FromString(
             format!("Report get_target error: no table Parameters!"),
         ))?);
-        self.parameters_target = parameters
-            .iter()
-            .filter_map(|v| {
-                match (v[0].parse::<i32>(), v[3].parse::<f64>()) {
-                    (Ok(id), Ok(v)) => Some((id, v)),
-                    _ => None, //Err(Error::FromString(format!("Report parse error: parameters {:?}", v))),
-                }
-            })
-            .collect();
+        let mut buf = Vec::new();
+        for row in parameters.into_iter().rev() {
+            if row.len() > 1 {
+                buf.push(row);
+                continue;
+            }
+            if row[0].contains("Водоизмещение") {
+                self.displacement_target = buf;
+                buf = Vec::new();
+                continue;
+            }
+            if row[0].contains("Осадки") {
+                self.draught_target = buf;
+                buf = Vec::new();
+                continue;
+            }
+            if row[0].contains("Остойчивость") {
+                self.parameters_target = buf;
+                buf = Vec::new();
+                continue;
+            }
+        }
         Ok(())
     }
     //
@@ -126,6 +143,8 @@ impl Report {
         };
         self.strength_limit =
             crate::db::api_server::get_strength_limit(&mut self.api_server, self.ship_id, area)?;
+        self.lever_diagram_result =
+            crate::db::api_server::get_lever_diagram(&mut self.api_server, self.ship_id)?;
         Ok(())
     }
     //
@@ -146,26 +165,26 @@ impl Report {
     //
     pub fn write(self, path: &str) -> Result<(), Error> {
         println!("Parser write_to_file begin");
-        /*    let formatter = crate::formatter::Formatter::new(Page::new(Title::new(
-                    "Сухогрузное судно Sofia (IMO№ 555666333)".to_owned(),
-                ).print(), None)).add_page(General::new().to_string())
-                .add_page(ListOfCalculations::new(vec!["Однородный груз. Отправление", "Дополнительные расчеты остойчивости, выполненные в связи с изменением и увеличением осадки. (2020)",
-                "Судно в балласте. Прибытие", "Буклет остойчивости",
-                "Тяжеловесный груз (20 т/м2). Отправление", "Дополнительные расчеты остойчивости, выполненные в связи с изменением и увеличением осадки. (2020)",
-                "Контейнеры 12 т/ТЕU. Прибытие", "Буклет остойчивости",
-                "Зерно 65 фут3/т. Прибытие", "Информация об остойчивости судна при перевозке зерна",]).to_string());
-        let formatter = crate::formatter::Formatter::new(Page::new(
-            Displacement::new(&self.parameters(&[2, 32, 56, 12, 1, 52]), self.ship_wide.unwrap()).to_string(),
-            Some(1),
-        ));
-        std::fs::write(format!("{}", path), formatter.print()).expect("Unable to write {path}");
-        */
-        let mut content = Displacement::new(
-            &self.parameters(&[2, 32, 56, 12, 1, 52]),
+        let mut content = crate::content::stability::displacement::Displacement::from_data(
+            &self.parameters_target,
+            &self.parameters_result,
             self.ship_wide.unwrap(),
-        )
-        .to_string()?;
-        content = content + "\n" + &Strength::new_named(&self.strength_result, &self.strength_target, &self.strength_limit).to_string()?;
+        )?.to_string()? + "\n";
+        content += &(crate::content::stability::draught::Draught::from_data(
+            &self.draught_target,
+            &self.parameters_result,
+            self.ship_wide.unwrap(),
+        )?.to_string()? + "\n");        
+        content += &(Strength::new_named(
+                &self.strength_result,
+                &self.strength_target,
+                &self.strength_limit,
+            ).to_string()? + "\n"); 
+        content += &(crate::content::stability::draught::Draught::from_data(
+            &self.draught_target,
+            &self.parameters_result,
+            self.ship_wide.unwrap(),
+        )?.to_string()? + "\n");        
         std::fs::write(format!("{}", path), content).expect("Unable to write {path}");
         std::thread::sleep(std::time::Duration::from_secs(1));
         println!("Parser write_to_file end");
@@ -179,16 +198,5 @@ impl Report {
             .map(|v| v.iter().map(|v| v.to_string()).collect())
             .collect();
         data
-    }
-    //
-    fn parameter(&self, id: &i32) -> (Option<f64>, Option<f64>) {
-        (
-            self.parameters_target.get(id).copied(),
-            self.parameters_result.get(id).copied(),
-        )
-    }
-    //
-    fn parameters(&self, id: &[i32]) -> Vec<(Option<f64>, Option<f64>)> {
-        id.iter().map(|id| self.parameter(id)).collect()
     }
 }

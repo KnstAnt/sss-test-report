@@ -5,11 +5,11 @@ use crate::{content::Content, error::Error};
 use super::template::Template;
 
 
-pub struct Parameters {
+pub struct Draught {
     table: Template,
 }
 //
-impl Parameters {
+impl Draught {
     pub fn from_data(
         target: &Vec<Vec<String>>,
         result: &HashMap<i32, f64>,
@@ -25,9 +25,9 @@ impl Parameters {
     }
 }
 //
-impl Content for Parameters {
+impl Content for Draught {
     //
     fn to_string(self) -> Result<String, crate::error::Error> {
-        Ok("## Параметры остойчивости  \n".to_string() + &self.table.to_string()?)
+        Ok("## Параметры посадки  \n".to_string() + &self.table.to_string()?)
     }
 }

@@ -7,6 +7,7 @@ use api_tools::client::api_request::*;
 use super::computed_frame::ComputedFrameDataArray;
 use super::criterion::DataRowArray;
 use super::criterion::DataShipArray;
+use super::stability_diagram::StabilityDiagramDataArray;
 use super::strength_limit::StrengthLimitDataArray;
 use super::strength_result::StrengthResultDataArray;
 
@@ -131,4 +132,19 @@ pub fn get_strength_limit(
             .map_err(|e| Error::FromString(format!("api_server get_strength_limit error: {e}")))?,
     )
     .map_err(|e| Error::FromString(format!("api_server get_strength_limit error: {e}")))?.data(area))
+}
+//
+pub fn get_lever_diagram(
+    api_server: &mut ApiServer,
+    ship_id: usize,
+) -> Result<Vec<(f64, f64)>, Error> {
+    Ok(StabilityDiagramDataArray::parse(
+        &api_server
+            .fetch(&format!(
+                "SELECT angle, value_dso FROM stability_diagram WHERE ship_id={};",
+                ship_id
+            ))
+            .map_err(|e| Error::FromString(format!("api_server get_lever_diagram error: {e}")))?,
+    )
+    .map_err(|e| Error::FromString(format!("api_server get_lever_diagram error: {e}")))?.data())
 }

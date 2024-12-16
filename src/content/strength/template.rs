@@ -1,6 +1,3 @@
-use charts_rs::{
-    BarChart, Box, SeriesCategory,
-};
 use crate::error::Error;
 use crate::content::Content;
 use crate::content::misc::{Curve, ICurve};
@@ -9,7 +6,7 @@ pub struct Template {
     header: String,
     short_name: String,
     result: Vec<(f64, f64)>, //x, value
-    target: Vec<(f64, i32, f64)>, //x, fr, value
+    target: Vec<(f64, i32, f64, f64)>, //x, fr, value, limit_%
     limit: Vec<(f64, f64, f64)>, //fr, min, max
 }
 //
@@ -19,7 +16,7 @@ impl Template {
         header: String,
         short_name: String,
         result: &[(f64, f64)],
-        target: &[(f64, i32, f64)],
+        target: &[(f64, i32, f64, f64)],
         limit: &[(f64, f64, f64)],
     ) -> Self {
         Self {
@@ -40,10 +37,10 @@ impl Content for Template {
         let result = Curve::new_linear(&self.result)?;
         let limit_min = Curve::new_linear(&limit_min)?; 
         let limit_max = Curve::new_linear(&limit_max)?; 
-        let mut values = Vec::<(i32, f64, f64, f64, f64)>::with_capacity(self.target.len());
-        for (x, fr , target) in self.target {
-            // (fr, min, doc, calc, max)
-            values.push((fr, limit_min.value(fr as f64)?, target, result.value(x)?, limit_max.value(x)?));
+        let mut values = Vec::<(i32, f64, f64, f64, f64, f64)>::with_capacity(self.target.len());
+        for (x, fr , target, limit_p) in self.target {
+            // (fr, min, doc, calc, max, limit_%)
+            values.push((fr, limit_min.value(fr as f64)?, target, result.value(x)?, limit_max.value(x)?, limit_p));
         };
         let content = format!("## {}  \n", self.header) + &super::table::Table::new(&self.short_name, &values).to_string()?;
         Ok(content)
