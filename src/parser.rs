@@ -26,7 +26,7 @@ pub struct Report {
     displacement_target: Vec<Vec<String>>,
     draught_target: Vec<Vec<String>>,
     parameters_target: Vec<Vec<String>>,
-    criterion_result: HashMap<i32, f64>, // criterion_id, value
+    criteria_result: HashMap<i32, f64>, // criterion_id, value
     parameters_result: HashMap<i32, f64>,// parameter_id, value
 }
 //
@@ -48,7 +48,7 @@ impl Report {
             displacement_target: Vec::new(),
             draught_target: Vec::new(),
             parameters_target: Vec::new(),
-            criterion_result: HashMap::new(),
+            criteria_result: HashMap::new(),
             parameters_result: HashMap::new(),
         }
     }
@@ -155,7 +155,7 @@ impl Report {
     }
     //
     pub fn get_from_db(&mut self) -> Result<(), Error> {
-        self.criterion_result =
+        self.criteria_result =
             crate::db::api_server::get_criterion_data(&mut self.api_server, self.ship_id)?.data();
         self.parameters_result =
             crate::db::api_server::get_parameters_data(&mut self.api_server, self.ship_id)?.data();
@@ -208,6 +208,8 @@ impl Report {
                 &self.strength_limit,
             ).to_string().map_err(|e| format!("Parser write Strength error:{}", e))? + "\n"); 
         content += &(Stability::new_named(
+            &self.criteria_target,
+            &self.criteria_result,
             &self.parameters_target,
             &self.parameters_result,
             self.ship_wide.unwrap(),

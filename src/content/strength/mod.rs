@@ -60,7 +60,6 @@ impl Strength {
         let mut bm_max_abs = None;
         let mut bm_max_percent = None;      
         for row in target_max {
-            dbg!(&row);
             match row.0.as_str() {
                 "BMmax_abs" => bm_max_abs = Some((row.1, row.2 * 0.001, row.3)),
                 "BMmax_perc" => bm_max_percent = Some((row.1, row.2 * 0.001, row.3)),
