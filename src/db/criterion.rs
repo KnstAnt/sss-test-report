@@ -8,11 +8,12 @@ use super::DataArray;
 pub struct DataRow {
     pub id: i32,
     pub result: Option<f64>,
+    pub target: Option<f64>,
 }
 //
 impl std::fmt::Display for DataRow {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "DataRow(id:{}, result:{:?})", self.id, self.result)
+        write!(f, "DataRow(id:{}, result:{:?}, target:{:?})", self.id, self.result, self.target)
     }
 }
 //
@@ -23,7 +24,15 @@ impl DataRowArray {
     pub fn data(&self) -> HashMap<i32, f64> {
         self.data
             .iter()
-            .map(|v| (v.id, v.result.unwrap_or(0.)))
+            .map(|v| {
+                // Если ид=17 - Минимальная метацентрическая высота деления на отсеки
+                // то для отчета берем целевое значение
+                if v.id != 17 {
+                    (v.id, v.result.unwrap_or(0.))
+                } else {
+                    (v.id, v.target.unwrap_or(0.))
+                }
+            })
             .collect()
     }
 }

@@ -51,7 +51,7 @@ pub fn get_criterion_data(
     DataRowArray::parse(
         &api_server
             .fetch(&format!(
-                "SELECT criterion_id as id, actual_value as result FROM criterion_values WHERE ship_id={};",
+                "SELECT criterion_id AS id, actual_value AS result, limit_value AS target FROM criterion_values WHERE ship_id={};",
                 ship_id
             ))
             .map_err(|e| {
