@@ -75,12 +75,12 @@ impl Content for Template {
         let print_percent = |v: Option<f64>| v.map_or("".to_string(), |v| format!("{:.2}", v));
         let print_str = |v: &Option<String>| v.clone().map_or("".to_owned(), |v| v.to_string());
         for data in self.data {
-            dbg!(&data);
+        //    dbg!(&data);
             let (target, result) = (data.target, data.result);
             let (delta_result_abs, delta_result_percent) = match (target, result) {
                 (Some(target), Some(result)) => {
                     let delta = (result - target).abs();
-                    dbg!(&result, &target, &delta);
+                //    dbg!(&result, &target, &delta);
                     (Some(delta), Some(delta * 100. / target))
                 }
                 _ => (None, None),
@@ -107,7 +107,7 @@ impl Content for Template {
                 let limit_str = print_str(&limit);
                 (limit_res, limit_str.to_owned())
             };
-            dbg!(&data.limit_percent);
+        //    dbg!(&data.limit_percent);
             let target = print_abs(target);
             let result = print_abs(result);
             let id = data.id;
