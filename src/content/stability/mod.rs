@@ -36,6 +36,8 @@ impl Stability {
     }
     //
     pub fn new_named(
+        criteria_target: &Vec<Vec<String>>,
+        criteria_result: &HashMap<i32, f64>, // criterion_id, value        
         parameters_target: &Vec<Vec<String>>,
         parameters_result: &HashMap<i32, f64>,
         ship_wide: f64,
@@ -44,8 +46,8 @@ impl Stability {
     ) -> Result<Self, Error> {
         Ok(Self::new(
             Criterion::from_data(
-                parameters_target,
-                parameters_result,
+                criteria_target,
+                criteria_result,
                 ship_wide,
             )?,
             LeverDiagram::new(

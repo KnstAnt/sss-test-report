@@ -1,6 +1,6 @@
-use std::collections::HashMap;
-use crate::{content::Content, error::Error};
 use super::unit::TableUnit;
+use crate::{content::Content, error::Error};
+use std::collections::HashMap;
 
 //
 pub struct Template {
@@ -10,7 +10,7 @@ pub struct Template {
 }
 //
 impl Template {
-    pub fn new(header:&[String], data: &[TableUnit], ship_wide: f64,) -> Self {
+    pub fn new(header: &[String], data: &[TableUnit], ship_wide: f64) -> Self {
         Self {
             header: Vec::from(header),
             data: Vec::from(data),
@@ -24,7 +24,7 @@ impl Template {
         ship_wide: f64,
     ) -> Result<Self, Error> {
         let mut data = Vec::new();
-        for row in target.iter() {
+        for row in target.iter().skip(1) {
             data.push(TableUnit::from_data(row, result)?);
         }
         Ok(Self::new(
@@ -75,31 +75,26 @@ impl Content for Template {
         let print_percent = |v: Option<f64>| v.map_or("".to_string(), |v| format!("{:.2}", v));
         let print_str = |v: &Option<String>| v.clone().map_or("".to_owned(), |v| v.to_string());
         for data in self.data {
-        //    dbg!(&data);
             let (target, result) = (data.target, data.result);
-            let (delta_result_abs, delta_result_percent) = match (target, result) {
+            let (delta_result_abs, mut delta_result_percent) = match (target, result) {
                 (Some(target), Some(result)) => {
                     let delta = (result - target).abs();
-                //    dbg!(&result, &target, &delta);
+                    //    dbg!(&result, &target, &delta);
                     (Some(delta), Some(delta * 100. / target))
                 }
                 _ => (None, None),
             };
-            let process_limit = |limit: &Option<String>| -> (Option<bool>, String) {
-        //        dbg!(&delta_result_percent, &delta_result_abs, &limit);
+            let mut process_limit_percent = |limit: &Option<String>| -> (Option<bool>, String) {
                 let limit_res = if let Some(limit) = limit {
-                    if limit.contains('%') {
-                        if limit.contains("ширины судна") {
-                            if let (Some(delta), Some(limit)) = (delta_result_abs, parse_limit(limit)) {  
-                                Some(delta <= self.ship_wide*limit/100.)
-                            } else {
-                                None
-                            }
+                    if limit.contains("ширины судна") {
+                        if let (Some(delta), Some(limit)) = (delta_result_abs, parse_limit(limit)) {
+                            delta_result_percent = Some(delta * 100. / self.ship_wide);
+                            Some(delta <= self.ship_wide * limit / 100.)
                         } else {
-                            check_limit(delta_result_percent, limit)
+                            None
                         }
                     } else {
-                        check_limit(delta_result_abs, limit)
+                        check_limit(delta_result_percent, limit)
                     }
                 } else {
                     None
@@ -107,22 +102,28 @@ impl Content for Template {
                 let limit_str = print_str(&limit);
                 (limit_res, limit_str.to_owned())
             };
-        //    dbg!(&data.limit_percent);
+            let process_limit_abs = |limit: &Option<String>| -> (Option<bool>, String) {
+                let limit_res = if let Some(limit) = limit {
+                    check_limit(delta_result_abs, limit)
+                } else {
+                    None
+                };
+                let limit_str = print_str(&limit);
+                (limit_res, limit_str.to_owned())
+            };
             let target = print_abs(target);
             let result = print_abs(result);
             let id = data.id;
             let name = data.name;
             let unit = data.unit;
-            let (limit_res_p, limit_str_p) = process_limit(&data.limit_percent);
-            let (limit_res_abs, limit_str_abs) = process_limit(&data.limit_abs);
-           // dbg!(&data.limit_abs, &limit_res_abs, &limit_str_abs);
+            let (limit_res_p, limit_str_p) = process_limit_percent(&data.limit_percent);
+            let (limit_res_abs, limit_str_abs) = process_limit_abs(&data.limit_abs);
             let state = match (limit_res_p, limit_res_abs) {
-                (Some(false), _) | (_, Some(false)) => "-",
+                (Some(true), _) | (_, Some(true)) => "+",
                 (None, None) => "",
-                _ => "+",
+                _ => "-",
             };
             let delta_result_percent = print_percent(delta_result_percent);
-           // dbg!(&target, &limit_str_abs);
             string += &format!("|{id}|{name}|{unit}|{target}|{result}|{delta_result_percent}|{limit_str_p}|{limit_str_abs}|{state}|\n");
         }
         Ok(string)

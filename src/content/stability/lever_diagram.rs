@@ -24,13 +24,14 @@ impl LeverDiagram {
             let result = result.value(angle as f64)?;
             let delta_result_abs = (result - target).abs();
             let delta_result_percent = (delta_result_abs * 100. / target).abs();
-            let state = if delta_result_percent <= limit_abs && delta_result_percent <= limit_p {
+            let state = if delta_result_abs <= limit_abs || delta_result_percent <= limit_p {
                 "+"
             } else {
                 "-"
             };
+        //    dbg!(&angle, &target, &result, delta_result_abs, delta_result_percent, limit_p, limit_abs, state);
             string += &format!(
-                "|{}|{:.3}|{:.3}|{:.2}| ±{:.2} % | ±{:.3} см | {state} |\n",
+                "|{}|{:.3}|{:.3}|{:.2}| ±{:.2} % | ±{:.3} | {state} |\n",
                 angle as i32, target, result, delta_result_percent, limit_p, limit_abs
             );
         }
