@@ -34,9 +34,9 @@ impl Content for Template {
     fn to_string(self) -> Result<String, Error> {
         let (limit_min, limit_max): (Vec<(f64, f64)>, Vec<(f64, f64)>) = self.limit.into_iter().map(|(x, min, max)| ((x, min), (x, max))).unzip();
     //    let (fr_x, target) = self.target.into_iter().map(|(x, fr, v)| ((x, fr as f64), (fr, v))).unzip();
-        let result = Curve::new_linear(&self.result)?;
-        let limit_min = Curve::new_linear(&limit_min)?; 
-        let limit_max = Curve::new_linear(&limit_max)?; 
+        let result = Curve::new_linear(&self.result).map_err(|e| format!("Template to_string result error:{}, src:{:?}", e, &self.result))?;
+        let limit_min = Curve::new_linear(&limit_min).map_err(|e| format!("Template to_string limit_min error:{}, src:{:?}", e, &limit_min))?; 
+        let limit_max = Curve::new_linear(&limit_max).map_err(|e| format!("Template to_string limit_max error:{}, src:{:?}", e, &limit_max))?; 
         let mut values = Vec::<(i32, f64, f64, f64, f64, f64)>::with_capacity(self.target.len());
         for (x, fr , target, limit_p) in self.target {
             // (fr, min, doc, calc, max, limit_%)

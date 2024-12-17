@@ -17,12 +17,13 @@ impl LeverDiagram {
     //
     pub fn to_string(self) -> Result<String, crate::error::Error> {
         let mut string = "### Диаграмма статической остойчивости\n".to_owned() + 
-        &"| Крен | Плечо документация | Плечо расчет | %   | Допуск % | Допуск, абс. | Статус |\n";
+        &"| Крен | Плечо документация | Плечо расчет | %   | Допуск % | Допуск, абс. | Статус |\n"  +
+        &"|---|---|---|---|---|---|---|\n";
         let result = Curve::new_linear(&self.result)?;
         for (angle, target, limit_p, limit_abs) in self.target {
             let result = result.value(angle as f64)?;
             let delta_result_abs = (result - target).abs();
-            let delta_result_percent = delta_result_abs * 100. / target;
+            let delta_result_percent = (delta_result_abs * 100. / target).abs();
             let state = if delta_result_percent <= limit_abs && delta_result_percent <= limit_p {
                 "+"
             } else {

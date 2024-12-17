@@ -11,7 +11,6 @@ impl TableMax {
             &vec![
                 "Параметр",
                 &format!("${name}_{{min}}$"),
-                "L [m]",
                 "Документация",
                 "Расчет",
                 &format!("${name}_{{max}}$"),
@@ -42,9 +41,9 @@ impl TableMax {
         for (name, min, target, result, max, limit_p) in self.values {
             let delta = result - target;            
             let delta_result_percent = if delta > 0. {
-                delta * 100. / target
+                delta * 100. / max
             } else {
-                delta * 100. / target
+                delta * 100. / min
             };
             let state = match delta_result_percent.abs() <= limit_p {
                 false => "-",

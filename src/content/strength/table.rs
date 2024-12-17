@@ -49,6 +49,7 @@ impl Table {
                 false => "-",
                 true => "+",
             };
+         //   dbg!(result, target, delta, delta_result_percent);
             string += &format!(
                 "|{fr}|{:.3}|{:.3}|{:.3}|{:.3}|{:.2}| ±{} % | {state} |\n",
                 min, target, result, max, delta_result_percent, limit as i32,

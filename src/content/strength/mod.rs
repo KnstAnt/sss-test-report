@@ -33,7 +33,7 @@ impl Strength {
         result: &[(f64, f64, f64)],
         // x, fr, sf, bm, limit_%
         target: &[(f64, i32, f64, f64, f64)],
-        // x, fr, sf, bm, limit_%
+        // x, sf, bm, limit_%
         target_max: &[(String, f64, f64, f64)],
         // (frame_x, bm_min, bm_max, sf_min, sf_max)
         limit: &[(f64, f64, f64, f64, f64)],
@@ -60,11 +60,12 @@ impl Strength {
         let mut bm_max_abs = None;
         let mut bm_max_percent = None;      
         for row in target_max {
+            dbg!(&row);
             match row.0.as_str() {
-                "BMmax_abs" => sf_max_abs = Some((row.1, row.2, row.3)),
-                "BMmax_perc" => sf_max_percent = Some((row.1, row.2, row.3)),
-                "SFmax_abs" => bm_max_abs = Some((row.1, row.2, row.3)),
-                "SFmax_perc" => bm_max_percent = Some((row.1, row.2, row.3)),
+                "BMmax_abs" => bm_max_abs = Some((row.1, row.2 * 0.001, row.3)),
+                "BMmax_perc" => bm_max_percent = Some((row.1, row.2 * 0.001, row.3)),
+                "SFmax_abs" => sf_max_abs = Some((row.1, row.2 * 0.001, row.3)),
+                "SFmax_perc" => sf_max_percent = Some((row.1, row.2 * 0.001, row.3)),
                 _ => panic!("Strength new_named error: wrong target_max!, row:{:?}", row),
             }
         }
@@ -102,10 +103,10 @@ impl Strength {
     //
     pub fn to_string(self) -> Result<String, Error> {
         Ok("## Прочность".to_string() + "\n" + 
-            &self.bending_moment.to_string()? + "\n" + 
-            &self.bending_moment_max.to_string()? + "\n" + 
-            &self.shear_force.to_string()? + "\n" + 
-            &self.shear_force_max.to_string()?
+            &self.bending_moment.to_string().map_err(|e| format!("Strength to_string bending_moment error:{}", e))? + "\n" + 
+            &self.bending_moment_max.to_string().map_err(|e| format!("Strength to_string bending_moment_max error:{}", e))? + "\n" + 
+            &self.shear_force.to_string().map_err(|e| format!("Strength to_string shear_force error:{}", e))? + "\n" + 
+            &self.shear_force_max.to_string().map_err(|e| format!("Strength to_string shear_force_max error:{}", e))?
         )
     }
 }

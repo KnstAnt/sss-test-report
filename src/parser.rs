@@ -195,26 +195,25 @@ impl Report {
             &self.displacement_target,
             &self.parameters_result,
             self.ship_wide.unwrap(),
-        )?.to_string()? + "\n";
+        )?.to_string().map_err(|e| format!("Parser write Displacement error:{}", e))? + "\n";
         content += &(crate::content::stability::draught::Draught::from_data(
             &self.draught_target,
             &self.parameters_result,
             self.ship_wide.unwrap(),
-        )?.to_string()? + "\n");        
-     //   dbg!(&self.strength_target_max);
+        )?.to_string().map_err(|e| format!("Parser write Draught error:{}", e))? + "\n");        
         content += &(Strength::new_named(
                 &self.strength_result,
                 &self.strength_target,
                 &self.strength_target_max,
                 &self.strength_limit,
-            ).to_string()? + "\n"); 
+            ).to_string().map_err(|e| format!("Parser write Strength error:{}", e))? + "\n"); 
         content += &(Stability::new_named(
             &self.parameters_target,
             &self.parameters_result,
             self.ship_wide.unwrap(),
             &self.lever_diagram_target,
             &self.lever_diagram_result,
-        )?.to_string()? + "\n"); 
+        )?.to_string().map_err(|e| format!("Parser write Stability error:{}", e))? + "\n"); 
         std::fs::write(format!("{}", path), content).expect("Unable to write {path}");
         std::thread::sleep(std::time::Duration::from_secs(1));
         println!("Parser write_to_file end");
