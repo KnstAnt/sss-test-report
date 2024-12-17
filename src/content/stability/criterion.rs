@@ -17,7 +17,7 @@ impl Criterion {
     ) -> Result<Self, Error> {
         Ok(Self {
             table: Template::from_string(
-                target,
+                &target.clone().into_iter().skip(1).collect::<Vec<_>>(),
                 result,
                 ship_wide,
             )?,            

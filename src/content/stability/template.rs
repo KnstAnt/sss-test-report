@@ -24,7 +24,7 @@ impl Template {
         ship_wide: f64,
     ) -> Result<Self, Error> {
         let mut data = Vec::new();
-        for row in target.iter().skip(1) {
+        for row in target.iter() {
             data.push(TableUnit::from_data(row, result)?);
         }
         Ok(Self::new(
