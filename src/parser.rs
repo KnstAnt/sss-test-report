@@ -84,7 +84,7 @@ impl Report {
                 }
             })
             .collect();
-        let strength_max = Report::convert(workbook.get("SF&BM").ok_or(Error::FromString(format!(
+        let strength_max = Report::convert(workbook.get("SF&BM_max").ok_or(Error::FromString(format!(
             "Report get_target error: no table SF&BM!"
         )))?);
         self.strength_target_max = strength_max
@@ -129,21 +129,21 @@ impl Report {
             if row[0].contains("Водоизмещение") {
                 buf.reverse();
                 self.displacement_target = buf;
-                dbg!(&self.displacement_target);
+        //        dbg!(&self.displacement_target);
                 buf = Vec::new();
                 continue;
             }
             if row[0].contains("Осадки") {
                 buf.reverse();
                 self.draught_target = buf;
-                dbg!(&self.draught_target);
+        //        dbg!(&self.draught_target);
                 buf = Vec::new();
                 continue;
             }
             if row[0].contains("Остойчивость") {
                 buf.reverse();
                 self.parameters_target = buf;
-                dbg!(&self.parameters_target);
+        //        dbg!(&self.parameters_target);
                 buf = Vec::new();
                 continue;
             }
@@ -190,7 +190,7 @@ impl Report {
     //
     pub fn write(self, path: &str) -> Result<(), Error> {
         println!("Parser write_to_file begin");
-        dbg!(&self.parameters_target);
+    //    dbg!(&self.parameters_target);
         let mut content = crate::content::stability::displacement::Displacement::from_data(
             &self.displacement_target,
             &self.parameters_result,
@@ -201,6 +201,7 @@ impl Report {
             &self.parameters_result,
             self.ship_wide.unwrap(),
         )?.to_string()? + "\n");        
+     //   dbg!(&self.strength_target_max);
         content += &(Strength::new_named(
                 &self.strength_result,
                 &self.strength_target,
