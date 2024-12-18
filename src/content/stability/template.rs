@@ -78,9 +78,13 @@ impl Content for Template {
             let (target, result) = (data.target, data.result);
             let (delta_result_abs, mut delta_result_percent) = match (target, result) {
                 (Some(target), Some(result)) => {
-                    let delta = (result - target).abs();
-                    //    dbg!(&result, &target, &delta);
-                    (Some(delta), Some(delta * 100. / target))
+                    let delta_abs = (result - target).abs();
+                    let delta_percent = if target != 0. {
+                        Some(delta_abs * 100. / target)
+                    } else {
+                        None
+                    };
+                    (Some(delta_abs), delta_percent)
                 }
                 _ => (None, None),
             };
@@ -88,8 +92,12 @@ impl Content for Template {
                 let limit_res = if let Some(limit) = limit {
                     if limit.contains("ширины судна") {
                         if let (Some(delta), Some(limit)) = (delta_result_abs, parse_limit(limit)) {
-                            delta_result_percent = Some(delta * 100. / self.ship_wide);
-                            Some(delta <= self.ship_wide * limit / 100.)
+                            if self.ship_wide > 0. {
+                                delta_result_percent = Some(delta * 100. / self.ship_wide);
+                                Some(delta <= self.ship_wide * limit / 100.)
+                            } else {
+                                None
+                            }
                         } else {
                             None
                         }

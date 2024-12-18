@@ -39,11 +39,19 @@ impl Table {
             + &(0..self.header.len()).map(|_| "|---").collect::<String>()
             + "|\n";
         for (fr, min, target, result, max, limit) in self.values {
-            let delta = result - target;            
+            let delta = (result - target) * 100.;            
             let delta_result_percent = if delta > 0. {
-                delta * 100. / max
+                if max != 0. {
+                    delta / max
+                } else {
+                    0.
+                }
             } else {
-                delta * 100. / min
+                if min != 0. {
+                    delta / min
+                } else {
+                    0.
+                }
             };
             let state = match delta_result_percent.abs() <= limit {
                 false => "-",
