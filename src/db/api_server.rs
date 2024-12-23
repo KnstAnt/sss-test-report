@@ -5,8 +5,8 @@ use api_tools::client::api_query::*;
 use api_tools::client::api_request::*;
 
 use super::computed_frame::ComputedFrameDataArray;
-use super::criterion::DataRowArray;
-use super::criterion::DataShipArray;
+use super::data::DataRowArray;
+use super::data::DataShipArray;
 use super::stability_diagram::StabilityDiagramDataArray;
 use super::strength_limit::StrengthLimitDataArray;
 use super::strength_result::StrengthResultDataArray;

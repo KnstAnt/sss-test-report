@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use serde_parser::IFromJson;
 
 pub mod api_server;
-mod criterion;
+mod data;
 mod serde_parser;
 mod computed_frame;
 mod strength_result;

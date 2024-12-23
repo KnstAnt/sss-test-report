@@ -156,9 +156,19 @@ impl Report {
     //
     pub fn get_from_db(&mut self) -> Result<(), Error> {
         self.criteria_result =
-            crate::db::api_server::get_criterion_data(&mut self.api_server, self.ship_id)?.data();
+            crate::db::api_server::get_criterion_data(&mut self.api_server, self.ship_id)?.data().into_iter().map(|v| 
+                // Если ид=17 - Минимальная метацентрическая высота деления на отсеки
+                // то для отчета берем целевое значение
+                if v.0 != 17 {
+                    (v.0, v.1.1)
+                } else {
+                    (v.0, v.1.0)
+                }).collect();
         self.parameters_result =
-            crate::db::api_server::get_parameters_data(&mut self.api_server, self.ship_id)?.data();
+            crate::db::api_server::get_parameters_data(&mut self.api_server, self.ship_id)?.data().into_iter().map(|v| 
+                    (v.0, v.1.1)
+        ).collect();
+        dbg!(&self.parameters_result);
         self.strength_result =
             crate::db::api_server::get_strength_result(&mut self.api_server, self.ship_id)?;
         let area = if self.general.get("Акватория").unwrap().contains("Море") {

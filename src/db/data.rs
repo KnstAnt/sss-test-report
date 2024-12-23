@@ -21,17 +21,11 @@ pub type DataRowArray = DataArray<DataRow>;
 //
 impl DataRowArray {
     /// Преобразование данных в массив ключ + значение
-    pub fn data(&self) -> HashMap<i32, f64> {
+    pub fn data(&self) -> HashMap<i32, (f64, f64)> {
         self.data
             .iter()
             .map(|v| {
-                // Если ид=17 - Минимальная метацентрическая высота деления на отсеки
-                // то для отчета берем целевое значение
-                if v.id != 17 {
-                    (v.id, v.result.unwrap_or(0.))
-                } else {
-                    (v.id, v.target.unwrap_or(0.))
-                }
+                (v.id, (v.target.unwrap_or(0.), v.result.unwrap_or(0.)))
             })
             .collect()
     }
