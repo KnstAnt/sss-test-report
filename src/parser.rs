@@ -84,23 +84,24 @@ impl Report {
                 }
             })
             .collect();
-        let strength_max = Report::convert(workbook.get("SF&BM_max").ok_or(Error::FromString(format!(
-            "Report get_target error: no table SF&BM!"
-        )))?);
-        self.strength_target_max = strength_max
-            .iter()
-            .filter_map(|v| {
-                match (
-                    v[0].to_owned(),
-                    v[1].parse::<f64>(),
-                    v[2].parse::<f64>(),
-                    v[3].parse::<f64>(),
-                ) {
-                    (name, Ok(x), Ok(value), Ok(limit_p)) => Some((name, x, value, limit_p)),
-                    _ => None, //Err(Error::FromString(format!("Report parse error: strength_max {:?}", v))),
-                }
-            })
-            .collect();
+        self.strength_target_max = if let Some(data) = workbook.get("SF&BM_max") {
+            Report::convert(data)
+                .iter()
+                .filter_map(|v| {
+                    match (
+                        v[0].to_owned(),
+                        v[1].parse::<f64>(),
+                        v[2].parse::<f64>(),
+                        v[3].parse::<f64>(),
+                    ) {
+                        (name, Ok(x), Ok(value), Ok(limit_p)) => Some((name, x, value, limit_p)),
+                        _ => None, //Err(Error::FromString(format!("Report parse error: strength_max {:?}", v))),
+                    }
+                })
+                .collect()
+        } else {
+            Vec::new()
+        };
         let lever_diagram = Report::convert(workbook.get("Stabilitycurve").ok_or(
             Error::FromString(format!("Report get_target error: no table Stabilitycurve!")),
         )?);

@@ -1,25 +1,30 @@
-use template_max::TemplateMax;
 use template::Template;
+use template_max::TemplateMax;
 
 use crate::error::Error;
 
 use super::Content;
 
 pub mod table;
-pub mod template;
 pub mod table_max;
+pub mod template;
 pub mod template_max;
 
 //
 pub struct Strength {
     shear_force: Template,
-    shear_force_max: TemplateMax,
+    shear_force_max: Option<TemplateMax>,
     bending_moment: Template,
-    bending_moment_max: TemplateMax,
+    bending_moment_max: Option<TemplateMax>,
 }
 //
 impl Strength {
-    pub fn new(shear_force: Template, shear_force_max: TemplateMax, bending_moment: Template, bending_moment_max: TemplateMax,) -> Self {
+    pub fn new(
+        shear_force: Template,
+        shear_force_max: Option<TemplateMax>,
+        bending_moment: Template,
+        bending_moment_max: Option<TemplateMax>,
+    ) -> Self {
         Self {
             shear_force,
             shear_force_max,
@@ -44,7 +49,12 @@ impl Strength {
             .unzip();
         let (sf_target, bm_target): (Vec<_>, Vec<_>) = target
             .iter()
-            .map(|(x, fr, sf, bm, limit_p)| ((*x, *fr, *sf * 0.001, *limit_p), (*x, *fr, *bm * 0.001, *limit_p)))
+            .map(|(x, fr, sf, bm, limit_p)| {
+                (
+                    (*x, *fr, *sf * 0.001, *limit_p),
+                    (*x, *fr, *bm * 0.001, *limit_p),
+                )
+            })
             .unzip();
         let (sf_limit, bm_limit): (Vec<_>, Vec<_>) = limit
             .iter()
@@ -58,7 +68,7 @@ impl Strength {
         let mut sf_max_abs = None;
         let mut sf_max_percent = None;
         let mut bm_max_abs = None;
-        let mut bm_max_percent = None;      
+        let mut bm_max_percent = None;
         for row in target_max {
             match row.0.as_str() {
                 "BMmax_abs" => bm_max_abs = Some((row.1, row.2 * 0.001, row.3)),
@@ -68,6 +78,32 @@ impl Strength {
                 _ => panic!("Strength new_named error: wrong target_max!, row:{:?}", row),
             }
         }
+        let (shear_force_max, bending_moment_max) = if let (
+            Some(bm_max_abs),
+            Some(bm_max_percent),
+            Some(sf_max_abs),
+            Some(sf_max_percent),
+        ) = (bm_max_abs, bm_max_percent, sf_max_abs, sf_max_percent)
+        {
+            (
+                Some(TemplateMax::new(
+                    "SF".to_owned(),
+                    &sf_result,
+                    sf_max_abs,
+                    sf_max_percent,
+                    &sf_limit,
+                )),
+                Some(TemplateMax::new(
+                    "BM".to_owned(),
+                    &bm_result,
+                    bm_max_abs,
+                    bm_max_percent,
+                    &bm_limit,
+                )),
+            )
+        } else {
+            (None, None)
+        };
         Self::new(
             Template::new(
                 "Перерезывающие силы".to_owned(),
@@ -76,13 +112,7 @@ impl Strength {
                 &sf_target,
                 &sf_limit,
             ),
-            TemplateMax::new(
-                "SF".to_owned(),
-                &sf_result,
-                sf_max_abs.unwrap(),
-                sf_max_percent.unwrap(),
-                &sf_limit,
-            ),
+            shear_force_max,
             Template::new(
                 "Изгибающие моменты".to_owned(),
                 "BM".to_owned(),
@@ -90,22 +120,33 @@ impl Strength {
                 &bm_target,
                 &bm_limit,
             ),
-            TemplateMax::new(
-                "BM".to_owned(),
-                &bm_result,
-                bm_max_abs.unwrap(),
-                bm_max_percent.unwrap(),
-                &bm_limit,
-            ),
+            bending_moment_max,
         )
     }
     //
     pub fn to_string(self) -> Result<String, Error> {
-        Ok("## Прочность".to_string() + "\n" + 
-            &self.bending_moment.to_string().map_err(|e| format!("Strength to_string bending_moment error:{}", e))? + "\n" + 
-            &self.bending_moment_max.to_string().map_err(|e| format!("Strength to_string bending_moment_max error:{}", e))? + "\n" + 
-            &self.shear_force.to_string().map_err(|e| format!("Strength to_string shear_force error:{}", e))? + "\n" + 
-            &self.shear_force_max.to_string().map_err(|e| format!("Strength to_string shear_force_max error:{}", e))?
-        )
+        let bending_moment_max = if let Some(bending_moment_max) = self.bending_moment_max {
+            "\n".to_string() + &bending_moment_max.to_string()?
+        } else {
+            "".to_string()
+        };
+        let shear_force_max = if let Some(shear_force_max) = self.shear_force_max {
+            "\n".to_string() + &shear_force_max.to_string()?
+        } else {
+            "".to_string()
+        };    
+        Ok("## Прочность".to_string()
+            + "\n"
+            + &self
+                .bending_moment
+                .to_string()
+                .map_err(|e| format!("Strength to_string bending_moment error:{}", e))?
+            + &bending_moment_max
+            + "\n"            
+            + &self
+                .shear_force
+                .to_string()
+                .map_err(|e| format!("Strength to_string shear_force error:{}", e))?
+            + &shear_force_max)
     }
 }
