@@ -23,15 +23,24 @@ impl LeverDiagram {
         for (angle, target, limit_p, limit_abs) in self.target {
             let result = result.value(angle as f64)?;
             let delta_result_abs = (result - target).abs();
-            let delta_result_percent = (delta_result_abs * 100. / target).abs();
+            let delta_result_percent = if target != 0. {
+                delta_result_abs * 100. / target.abs()
+            } else {
+                f64::MAX
+            };
             let state = if delta_result_abs <= limit_abs || delta_result_percent <= limit_p {
                 "+"
             } else {
                 "-"
             };
+            let delta_result_percent = if delta_result_percent != f64::MAX {
+                format!("{:.2}", delta_result_percent)
+            } else {
+                format!("-")
+            };
         //    dbg!(&angle, &target, &result, delta_result_abs, delta_result_percent, limit_p, limit_abs, state);
             string += &format!(
-                "|{}|{:.3}|{:.3}|{:.2}| ±{:.2} % | ±{:.3} | {state} |\n",
+                "|{}|{:.3}|{:.3}|{:.2}| ±{} % | ±{:.3} | {state} |\n",
                 angle as i32, target, result, delta_result_percent, limit_p, limit_abs
             );
         }
