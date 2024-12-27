@@ -17,7 +17,8 @@ fn main() {
     env_logger::init();
     info!("starting up");
     let mut report = Report::new(2, ApiServer::new("sss-computing".to_owned()));
-    if let Err(error) = report.get_target("src/bin/SSS_Sofia_test3.xlsx") {
+//    if let Err(error) = report.get_target("src/bin/SSS_Sofia_test7(reserve).xlsx") {
+    if let Err(error) = report.get_target("src/bin/SSS_Sofia_test1.xlsx") {
         let mut stdout = io::stdout().lock();
         stdout.write_all(error.to_string().as_bytes()).unwrap();
         //       println!("{}", error.to_string());
