@@ -73,7 +73,7 @@ impl Content for Template {
         };
         let print_abs = |v: Option<f64>| v.map_or(" ".to_string(), |v| format!("{:.3}", v));
         let print_percent = |v: Option<f64>| v.map_or(" ".to_string(), |v| format!("{:.2}", v));
-        let print_str = |v: &Option<String>| v.clone().map_or(" ".to_owned(), |v| v.to_string());
+        let print_str = |v: &Option<String>| v.clone().map_or(" ".to_owned(), |v| v.replace("-", &" ").to_string());
         for data in self.data {
             let (target, result) = (data.target, data.result);
             let (delta_result_abs, mut delta_result_percent) = match (target, result) {
@@ -123,7 +123,7 @@ impl Content for Template {
             let result = print_abs(result);
             let id = data.id;
             let name = data.name;
-            let unit = data.unit;
+            let unit = data.unit.replace("-", &" ");
             let (limit_res_p, limit_str_p) = process_limit_percent(&data.limit_percent);
             let (limit_res_abs, limit_str_abs) = process_limit_abs(&data.limit_abs);
             let state = match (limit_res_p, limit_res_abs) {

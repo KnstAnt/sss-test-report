@@ -169,7 +169,6 @@ impl Report {
             crate::db::api_server::get_parameters_data(&mut self.api_server, self.ship_id)?.data().into_iter().map(|v| 
                     (v.0, v.1.1)
         ).collect();
-        dbg!(&self.parameters_result);
         self.strength_result =
             crate::db::api_server::get_strength_result(&mut self.api_server, self.ship_id)?;
         let area = if self.general.get("Акватория").unwrap().contains("Море") {

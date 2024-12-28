@@ -16,7 +16,7 @@ impl LeverDiagram {
     }
     //
     pub fn to_string(self) -> Result<String, crate::error::Error> {
-        let mut string = "### Диаграмма статической остойчивости\n".to_owned() + 
+        let mut string = "### Диаграмма статической остойчивости\n\n".to_owned() + 
         &"| Крен | Плечо документация | Плечо расчет | %   | Допуск % | Допуск, абс. | Статус |\n"  +
         &"|---|---|---|---|---|---|---|\n";
         let result = Curve::new_linear(&self.result)?;
