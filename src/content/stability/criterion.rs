@@ -28,6 +28,6 @@ impl Criterion {
 impl Content for Criterion {
     //
     fn to_string(self) -> Result<String, crate::error::Error> {
-        Ok("### Критерии\n".to_string() + &self.table.to_string()?)
+        Ok("### Критерии\n\n".to_string() + &self.table.to_string()?)
     }
 }

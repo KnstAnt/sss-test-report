@@ -135,8 +135,7 @@ impl Strength {
         } else {
             "".to_string()
         };    
-        Ok("## Прочность".to_string()
-            + "\n"
+        Ok("## Прочность\n\n".to_string()
             + &self
                 .bending_moment
                 .to_string()

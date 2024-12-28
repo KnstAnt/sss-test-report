@@ -63,7 +63,7 @@ impl Stability {
     }
     //
     pub fn to_string(self) -> Result<String, Error> {
-        Ok("## Остойчивость".to_string() + "\n" + 
+        Ok("## Остойчивость".to_string() + "\n\n" + 
             &self.criterion.to_string()? + "\n" + 
             &self.lever_diagram.to_string()? + "\n" + 
             &self.parameters.to_string()?

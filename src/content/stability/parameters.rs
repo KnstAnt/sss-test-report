@@ -28,6 +28,6 @@ impl Parameters {
 impl Content for Parameters {
     //
     fn to_string(self) -> Result<String, crate::error::Error> {
-        Ok("### Параметры остойчивости\n".to_string() + &self.table.to_string()?)
+        Ok("### Параметры остойчивости\n\n".to_string() + &self.table.to_string()?)
     }
 }
