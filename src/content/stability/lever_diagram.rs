@@ -40,8 +40,8 @@ impl LeverDiagram {
             };
         //    dbg!(&angle, &target, &result, delta_result_abs, delta_result_percent, limit_p, limit_abs, state);
             string += &format!(
-                "|{}|{:.3}|{:.3}|{}| ±{} % | ±{:.3} | {state} |\n",
-                angle as i32, target, result, delta_result_percent, limit_p, limit_abs
+                "|{}|{:.3}|{:.3}|{delta_result_percent}| ±{} % | ±{:.3} | {state} |\n",
+                angle as i32, target, result, limit_p, limit_abs
             );
         }
         Ok(string)
