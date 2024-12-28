@@ -36,7 +36,7 @@ impl LeverDiagram {
             let delta_result_percent = if delta_result_percent != f64::MAX {
                 format!("{:.2}", delta_result_percent)
             } else {
-                format!("-")
+                format!(" ")
             };
         //    dbg!(&angle, &target, &result, delta_result_abs, delta_result_percent, limit_p, limit_abs, state);
             string += &format!(
