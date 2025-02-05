@@ -6,27 +6,42 @@ pub struct Table {
 //
 impl Table {
     // fr, min, doc, calc, max, limit_%
-    pub fn new(language: &String, name: &str, values: &[(i32, f64, f64, f64, f64, f64)]) -> Self {
-        Self::new_header(
-            &vec![
-                "Fr",
-                &format!("${name}_{{min}}$"),
-                "Документация",
-                "Расчет",
-                &format!("${name}_{{max}}$"),
-                "%",
-                "Допуск, %",
-                "Статус",
-            ],
-            values,
-        )
-    }
-    //
-    pub fn new_header(header: &[&str], values: &[(i32, f64, f64, f64, f64, f64)]) -> Self {
+    pub fn new(header: &[String], values: &[(i32, f64, f64, f64, f64, f64)]) -> Self {
         Self {
             header: header.iter().map(|s| s.to_string()).collect(),
             values: Vec::from(values),
         }
+    }
+    //
+    pub fn from(
+        language: &String,
+        name: &str,
+        values: &[(i32, f64, f64, f64, f64, f64)],
+    ) -> Self {
+        let header = if language.contains("en") {
+            vec![
+                "Fr".to_string(),
+                format!("${name}_{{min}}$"),
+                "Documentation".to_string(),
+                "Calculation".to_string(),
+                format!("${name}_{{max}}$"),
+                "%".to_string(),
+                "Tolerances, %".to_string(),
+                "Status".to_string(),
+            ]
+        } else {
+            vec![
+                "Fr".to_string(),
+                format!("${name}_{{min}}$"),
+                "Документация".to_string(),
+                "Расчет".to_string(),
+                format!("${name}_{{max}}$"),
+                "%".to_string(),
+                "Допуск, %".to_string(),
+                "Статус".to_string(),
+            ]
+        };
+        Self::new(&header, values)
     }
     //
     pub fn to_string(self) -> Result<String, crate::error::Error> {
@@ -39,7 +54,7 @@ impl Table {
             + &(0..self.header.len()).map(|_| "|---").collect::<String>()
             + "|\n";
         for (fr, min, target, result, max, limit) in self.values {
-            let delta = (result - target) * 100.;            
+            let delta = (result - target) * 100.;
             let delta_result_percent = if delta > 0. {
                 if max != 0. {
                     delta / max
@@ -57,7 +72,7 @@ impl Table {
                 false => "-",
                 true => "+",
             };
-         //   dbg!(result, target, delta, delta_result_percent);
+            //   dbg!(result, target, delta, delta_result_percent);
             string += &format!(
                 "|{fr}|{:.3}|{:.3}|{:.3}|{:.3}|{:.2}| ±{} % | {state} |\n",
                 min, target, result, max, delta_result_percent, limit as i32,

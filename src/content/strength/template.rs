@@ -45,7 +45,7 @@ impl Content for Template {
             // (fr, min, doc, calc, max, limit_%)
             values.push((fr, limit_min.value(x)?, target, result.value(x)?, limit_max.value(x)?, limit_p));
         };
-        let content = format!("### {}\n\n", self.header) + &super::table::Table::new(&self.language, &self.short_name, &values).to_string()?;
+        let content = format!("### {}\n\n", self.header) + &super::table::Table::from(&self.language, &self.short_name, &values).to_string()?;
         Ok(content)
     } 
 }

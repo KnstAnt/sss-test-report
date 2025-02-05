@@ -20,7 +20,7 @@ impl Template {
     //
     pub fn from(
         language: &String,
-        data: &[TableUnit], 
+        data: &mut [TableUnit], 
         ship_wide: f64,
     ) -> Result<Self, Error> {
         let header = if language.contains("en") {
@@ -49,6 +49,13 @@ impl Template {
             ]
         }
         .to_owned();
+        let (src, trg) = if language.contains("en") { ("ширины судна", "breadth") } else { ("breadth", "ширины судна") };
+        data.into_iter().for_each(|v| {
+                v.limit_percent = v.limit_percent.take().map(|v| {
+                    v.replace(src, trg)
+                });
+            }
+        );
         Ok(Self::new(
             &header,
             &data,
@@ -68,7 +75,7 @@ impl Template {
         }
         Self::from(
             language,
-            &data,
+            &mut data,
             ship_wide,
         )
     }
@@ -85,7 +92,7 @@ impl Template {
         }
         Self::from(
             language,
-            &data,
+            &mut data,
             ship_wide,
         )
     }
