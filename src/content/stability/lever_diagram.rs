@@ -29,11 +29,9 @@ impl LeverDiagram {
             (
                 "Stability curve",
                 vec![
-                    "№",
-                    "Name",
-                    "Dimension",
-                    "Documentation",
-                    "Calculation",
+                    "Heel",
+                    "Lever documentation",
+                    "Lever calculation",
                     "%",
                     "Tolerances, %",
                     "Tolerances, abs",
