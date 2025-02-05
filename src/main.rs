@@ -15,6 +15,7 @@ fn main() {
     env_logger::init();
     info!("starting up");
     let ship_id = 2;
+    let path = "src/bin/SSS_Sofia_test1.xlsx";
     let language = Some("ru".to_owned());
     let mut report = Report::new(
         language.clone(),
@@ -26,8 +27,7 @@ fn main() {
             language,
         )
     );
-//    if let Err(error) = report.get_target("src/bin/SSS_Sofia_test7(reserve).xlsx") {
-    if let Err(error) = report.get_target("src/bin/SSS_Sofia_test7.xlsx") {
+    if let Err(error) = report.get_target(path) {
         let mut stdout = io::stdout().lock();
         stdout.write_all(error.to_string().as_bytes()).unwrap();
         //       println!("{}", error.to_string());
@@ -45,7 +45,42 @@ fn main() {
         //       println!("{}", error.to_string());
         return;
     }
-    if let Err(error) = report.write("src/bin/result.md") {
+    if let Err(error) = report.write("src/bin/result_ru.md") {
+        let mut stdout = io::stdout().lock();
+        stdout.write_all(error.to_string().as_bytes()).unwrap();
+        //       println!("{}", error.to_string());
+        return;
+    }
+    let language = Some("en".to_owned());
+    let mut report = Report::new(
+        language.clone(),
+        ship_id,
+        ApiServer::new(
+            "sss-computing".to_owned(),
+            2,
+            None,
+            language,
+        )
+    );
+    if let Err(error) = report.get_target(path) {
+        let mut stdout = io::stdout().lock();
+        stdout.write_all(error.to_string().as_bytes()).unwrap();
+        //       println!("{}", error.to_string());
+        return;
+    }
+    if let Err(error) = report.get_ship_wide() {
+        let mut stdout = io::stdout().lock();
+        stdout.write_all(error.to_string().as_bytes()).unwrap();
+        //       println!("{}", error.to_string());
+        return;
+    }
+    if let Err(error) = report.get_from_db() {
+        let mut stdout = io::stdout().lock();
+        stdout.write_all(error.to_string().as_bytes()).unwrap();
+        //       println!("{}", error.to_string());
+        return;
+    }
+    if let Err(error) = report.write("src/bin/result_en.md") {
         let mut stdout = io::stdout().lock();
         stdout.write_all(error.to_string().as_bytes()).unwrap();
         //       println!("{}", error.to_string());
