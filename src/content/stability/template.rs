@@ -10,35 +10,52 @@ pub struct Template {
 }
 //
 impl Template {
-    pub fn new(header: &[String], data: &[TableUnit], ship_wide: f64) -> Self {
+    pub fn new(header: &[&str], data: &[TableUnit], ship_wide: f64) -> Self {
         Self {
-            header: Vec::from(header),
+            header: header.iter().map(|s| s.to_string()).collect(),
             data: Vec::from(data),
             ship_wide,
         }
     }
     //
-    pub fn from_string(
+    pub fn from(
+        language: &String,
         target: &Vec<Vec<String>>,
         result: &HashMap<i32, f64>,
         ship_wide: f64,
     ) -> Result<Self, Error> {
+        let header = if language.contains("en") {
+            vec![
+                "№",
+                "Name",
+                "Dimension",
+                "Documentation",
+                "Calculation",
+                "%",
+                "Tolerances, %",
+                "Tolerances, abs.",
+                "Status",
+            ]
+        } else {
+            vec![
+                "№",
+                "Наименование",
+                "Размерность",
+                "Документация",
+                "Расчет",
+                "%",
+                "Допуск, %",
+                "Допуск, абс.",
+                "Статус",
+            ]
+        }
+        .to_owned();
         let mut data = Vec::new();
         for row in target.iter() {
             data.push(TableUnit::from_data(row, result)?);
         }
         Ok(Self::new(
-            &vec![
-                "№".to_string(),
-                "Наименование".to_string(),
-                "Размерность".to_string(),
-                "Документация".to_string(),
-                "Расчет".to_string(),
-                "%".to_string(),
-                "Допуск, %".to_string(),
-                "Допуск, абс.".to_string(),
-                "Статус".to_string(),
-            ],
+            &header,
             &data,
             ship_wide,
         ))
@@ -73,7 +90,10 @@ impl Content for Template {
         };
         let print_abs = |v: Option<f64>| v.map_or(" ".to_string(), |v| format!("{:.3}", v));
         let print_percent = |v: Option<f64>| v.map_or(" ".to_string(), |v| format!("{:.2}", v));
-        let print_str = |v: &Option<String>| v.clone().map_or(" ".to_owned(), |v| v.replace("-", &" ").to_string());
+        let print_str = |v: &Option<String>| {
+            v.clone()
+                .map_or(" ".to_owned(), |v| v.replace("-", &" ").to_string())
+        };
         for data in self.data {
             let (target, result) = (data.target, data.result);
             let (delta_result_abs, mut delta_result_percent) = match (target, result) {

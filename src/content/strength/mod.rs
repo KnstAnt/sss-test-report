@@ -12,6 +12,7 @@ pub mod template_max;
 
 //
 pub struct Strength {
+    title: String,
     shear_force: Template,
     shear_force_max: Option<TemplateMax>,
     bending_moment: Template,
@@ -20,12 +21,14 @@ pub struct Strength {
 //
 impl Strength {
     pub fn new(
+        title: String,
         shear_force: Template,
         shear_force_max: Option<TemplateMax>,
         bending_moment: Template,
         bending_moment_max: Option<TemplateMax>,
     ) -> Self {
         Self {
+            title,
             shear_force,
             shear_force_max,
             bending_moment,
@@ -34,6 +37,7 @@ impl Strength {
     }
     //
     pub fn new_named(
+        language: &String,
         // x, sf, bm
         result: &[(f64, f64, f64)],
         // x, fr, sf, bm, limit_%
@@ -43,6 +47,20 @@ impl Strength {
         // (frame_x, bm_min, bm_max, sf_min, sf_max)
         limit: &[(f64, f64, f64, f64, f64)],
     ) -> Self {
+        let title = if language.contains("en") {
+            "## Strength"
+        } else {
+            "## Прочность"
+        }
+        .to_owned();
+        let (header_sf, header_bm) = if language.contains("en") {
+            ("Share force".to_owned(), "Bending moment".to_owned())
+        } else {
+            (
+                "Перерезывающие силы".to_owned(),
+                "Изгибающие моменты".to_owned(),
+            )
+        };
         let (sf_result, bm_result): (Vec<_>, Vec<_>) = result
             .iter()
             .map(|(x, sf, bm)| ((*x, *sf * 0.001), (*x, *bm * 0.001)))
@@ -83,7 +101,8 @@ impl Strength {
             Some(bm_max_percent),
             Some(sf_max_abs),
             Some(sf_max_percent),
-        ) = (bm_max_abs, bm_max_percent, sf_max_abs, sf_max_percent)
+        ) =
+            (bm_max_abs, bm_max_percent, sf_max_abs, sf_max_percent)
         {
             (
                 Some(TemplateMax::new(
@@ -105,8 +124,9 @@ impl Strength {
             (None, None)
         };
         Self::new(
+            title,
             Template::new(
-                "Перерезывающие силы".to_owned(),
+                header_sf,
                 "SF".to_owned(),
                 &sf_result,
                 &sf_target,
@@ -114,7 +134,7 @@ impl Strength {
             ),
             shear_force_max,
             Template::new(
-                "Изгибающие моменты".to_owned(),
+                header_bm,
                 "BM".to_owned(),
                 &bm_result,
                 &bm_target,
@@ -134,14 +154,13 @@ impl Strength {
             "\n".to_string() + &shear_force_max.to_string()?
         } else {
             "".to_string()
-        };    
-        Ok("## Прочность\n\n".to_string()
+        };
+        Ok(self.title + "\n\n"
             + &self
                 .bending_moment
                 .to_string()
                 .map_err(|e| format!("Strength to_string bending_moment error:{}", e))?
-            + &bending_moment_max
-            + "\n"            
+            + &bending_moment_max + "\n"
             + &self
                 .shear_force
                 .to_string()

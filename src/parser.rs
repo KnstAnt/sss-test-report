@@ -4,6 +4,11 @@ use crate::content::strength::Strength;
 //use crate::content::general::General;
 //use crate::content::list_of_calculations::ListOfCalculations;
 use crate::content::Content;
+use crate::db::bulk_cargo::BulkCargoData;
+use crate::db::bulkhead::BulkheadData;
+use crate::db::cargo::CargoData;
+use crate::db::container::ContainerData;
+use crate::db::tank::TankData;
 use crate::error::Error;
 //use crate::formatter::Page;
 use crate::ApiServer;
@@ -12,6 +17,7 @@ use calamine::{open_workbook, Data, Reader, Xlsx};
 use std::collections::HashMap;
 //
 pub struct Report {
+    language: String,
     ship_id: usize,
     api_server: ApiServer,
     general: HashMap<String, String>,
@@ -28,12 +34,20 @@ pub struct Report {
     parameters_target: Vec<Vec<String>>,
     criteria_result: HashMap<i32, f64>, // criterion_id, value
     parameters_result: HashMap<i32, f64>,// parameter_id, value
+    ballast_tanks: Vec<TankData>,
+    stores_tanks: Vec<TankData>,
+    stores: Vec<CargoData>,
+    bulkheads: Vec<BulkheadData>,
+    bulk_cargo: Vec<BulkCargoData>,
+    container: Vec<ContainerData>,
+    general_cargo: Vec<CargoData>,
 }
 //
 impl Report {
     //
-    pub fn new(ship_id: usize, api_server: ApiServer) -> Self {
+    pub fn new(language: Option<String>, ship_id: usize, api_server: ApiServer) -> Self {
         Self {
+            language: language.unwrap_or("ru".to_owned()),
             ship_id,
             api_server,
             general: HashMap::new(),
@@ -50,6 +64,13 @@ impl Report {
             parameters_target: Vec::new(),
             criteria_result: HashMap::new(),
             parameters_result: HashMap::new(),
+            ballast_tanks: Vec::new(),
+            stores_tanks: Vec::new(),
+            stores: Vec::new(),
+            bulkheads: Vec::new(),
+            bulk_cargo: Vec::new(),
+            container: Vec::new(),
+            general_cargo: Vec::new(),
         }
     }
     //
@@ -157,7 +178,7 @@ impl Report {
     //
     pub fn get_from_db(&mut self) -> Result<(), Error> {
         self.criteria_result =
-            crate::db::api_server::get_criterion_data(&mut self.api_server, self.ship_id)?.data().into_iter().map(|v| 
+            self.api_server.get_criterion_data()?.data().into_iter().map(|v| 
                 // Если ид=17 - Минимальная метацентрическая высота деления на отсеки
                 // то для отчета берем целевое значение
                 if v.0 != 17 {
@@ -166,25 +187,38 @@ impl Report {
                     (v.0, v.1.0)
                 }).collect();
         self.parameters_result =
-            crate::db::api_server::get_parameters_data(&mut self.api_server, self.ship_id)?.data().into_iter().map(|v| 
+            self.api_server.get_parameters_data()?.data().into_iter().map(|v| 
                     (v.0, v.1.1)
         ).collect();
         self.strength_result =
-            crate::db::api_server::get_strength_result(&mut self.api_server, self.ship_id)?;
+            self.api_server.get_strength_result()?;
         let area = if self.general.get("Акватория").unwrap().contains("Море") {
             "sea"
         } else {
             "harbor"
         };
         self.strength_limit =
-            crate::db::api_server::get_strength_limit(&mut self.api_server, self.ship_id, area)?;
+            self.api_server.get_strength_limit(area)?;
         self.lever_diagram_result =
-            crate::db::api_server::get_lever_diagram(&mut self.api_server, self.ship_id)?;
+            self.api_server.get_lever_diagram()?;
+        self.ballast_tanks =
+            self.api_server.get_ballast_tanks()?.data();
+        self.stores_tanks =
+            self.api_server.get_stores_tanks()?.data();
+        self.stores = self.api_server.get_stores()?.data();
+        self.bulkheads =
+            self.api_server.get_bulkheads()?.data();
+        self.bulk_cargo =
+            self.api_server.get_bulk_cargo()?.data();
+        self.container =
+            self.api_server.get_container()?.data();
+        self.general_cargo =
+            self.api_server.get_general_cargo()?.data();
         Ok(())
     }
     //
     pub fn get_ship_wide(&mut self) -> Result<(), Error> {
-        self.ship_wide = crate::db::api_server::get_ship_wide(&mut self.api_server, self.ship_id)
+        self.ship_wide = self.api_server.get_ship_wide()
             .map_err(|e| format!("Parser get_ship_wide error: {e}"))?
             .data()
             .get("MouldedBreadth")
@@ -201,23 +235,59 @@ impl Report {
     pub fn write(self, path: &str) -> Result<(), Error> {
         println!("Parser write_to_file begin");
     //    dbg!(&self.parameters_target);
-        let mut content = crate::content::stability::displacement::Displacement::from_data(
-            &self.displacement_target,
-            &self.parameters_result,
-            self.ship_wide.unwrap(),
-        )?.to_string().map_err(|e| format!("Parser write Displacement error:{}", e))? + "\n";
-        content += &(crate::content::stability::draught::Draught::from_data(
+        let mut content = crate::content::displacement::Displacement::new(
+            &self.language,            
+            crate::content::displacement::summary::Summary::from(
+                &self.language,
+                &self.displacement_target,
+                &self.parameters_result,
+                self.ship_wide.unwrap(),
+            )?,
+            crate::content::displacement::tank::Tank::from(
+                &self.language,
+                &self.ballast_tanks
+            )?,
+            crate::content::displacement::tank::Tank::from(
+                &self.language,
+                &self.stores_tanks
+            )?,
+            crate::content::displacement::cargo::Cargo::from(
+                &self.language,
+                &self.stores
+            )?,
+            crate::content::displacement::bulkhead::Bulkhead::from(
+                &self.language,
+                &self.bulkheads
+            )?,
+            crate::content::displacement::bulk_cargo::BulkCargo::from(
+                &self.language,
+                &self.bulk_cargo
+            )?,
+            crate::content::displacement::container::Container::from(
+                &self.language,
+                &self.container
+            )?,
+            crate::content::displacement::cargo::Cargo::from(
+                &self.language,
+                &self.general_cargo
+            )?,
+        )
+        .to_string()?;
+        content += &(crate::content::stability::draught::Draught::from(
+            &self.language,
             &self.draught_target,
             &self.parameters_result,
             self.ship_wide.unwrap(),
         )?.to_string().map_err(|e| format!("Parser write Draught error:{}", e))? + "\n");        
         content += &(Strength::new_named(
-                &self.strength_result,
-                &self.strength_target,
-                &self.strength_target_max,
-                &self.strength_limit,
-            ).to_string().map_err(|e| format!("Parser write Strength error:{}", e))? + "\n"); 
+            &self.language,
+            &self.strength_result,
+            &self.strength_target,
+            &self.strength_target_max,
+            &self.strength_limit,
+        ).to_string().map_err(|e| format!("Parser write Strength error:{}", e))? + "\n"); 
         content += &(Stability::new_named(
+            &self.language,
             &self.criteria_target,
             &self.criteria_result,
             &self.parameters_target,

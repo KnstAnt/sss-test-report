@@ -9,6 +9,11 @@ mod computed_frame;
 mod strength_result;
 mod strength_limit;
 mod stability_diagram;
+pub mod tank;
+pub mod cargo;
+pub mod bulkhead;
+pub mod bulk_cargo;
+pub mod container;
 
 /// Массив ключ + значение
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

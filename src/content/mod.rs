@@ -3,6 +3,7 @@ use crate::error::Error;
 pub mod misc;
 pub mod strength;
 pub mod stability;
+pub mod displacement;
 
 //
 pub trait Content {

@@ -10,13 +10,15 @@ pub struct Criterion {
 }
 //
 impl Criterion {
-    pub fn from_data(
+    pub fn from(
+        language: &String,
         target: &Vec<Vec<String>>,
         result: &HashMap<i32, f64>,
         ship_wide: f64,
     ) -> Result<Self, Error> {
         Ok(Self {
-            table: Template::from_string(
+            table: Template::from(
+                language,
                 &target.clone().into_iter().skip(1).collect::<Vec<_>>(),
                 result,
                 ship_wide,

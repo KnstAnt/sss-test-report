@@ -1,21 +1,21 @@
 use std::collections::HashMap;
 
-use crate::{content::Content, error::Error};
+use crate::{content::{stability::template::Template, Content}, error::Error};
 
-use super::template::Template;
-
-pub struct Displacement {
+pub struct Summary {
     table: Template,
 }
 //
-impl Displacement {
-    pub fn from_data(
+impl Summary {
+    pub fn from(
+        language: &String, 
         target: &Vec<Vec<String>>,
         result: &HashMap<i32, f64>,
         ship_wide: f64,
     ) -> Result<Self, Error> {
         Ok(Self {
-            table: Template::from_string(
+            table: Template::from(
+                language,
                 target,
                 result,
                 ship_wide,
@@ -24,9 +24,9 @@ impl Displacement {
     }
 }
 //
-impl Content for Displacement {
+impl Content for Summary {
     //
     fn to_string(self) -> Result<String, crate::error::Error> {
-        Ok("## Водоизмещение\n\n".to_string() + &self.table.to_string()?)
+        self.table.to_string()
     }
 }

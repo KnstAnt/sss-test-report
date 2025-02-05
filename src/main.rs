@@ -1,10 +1,8 @@
 use db::api_server::ApiServer;
 use log::info;
 use parser::Report;
-use std::cell::RefCell;
 use std::io;
 use std::io::*;
-use std::rc::Rc;
 
 mod content;
 mod db;
@@ -16,7 +14,18 @@ fn main() {
     std::env::set_var("RUST_LOG", "info");
     env_logger::init();
     info!("starting up");
-    let mut report = Report::new(2, ApiServer::new("sss-computing".to_owned()));
+    let ship_id = 2;
+    let language = Some("ru".to_owned());
+    let mut report = Report::new(
+        language.clone(),
+        ship_id,
+        ApiServer::new(
+            "sss-computing".to_owned(),
+            2,
+            None,
+            language,
+        )
+    );
 //    if let Err(error) = report.get_target("src/bin/SSS_Sofia_test7(reserve).xlsx") {
     if let Err(error) = report.get_target("src/bin/SSS_Sofia_test7.xlsx") {
         let mut stdout = io::stdout().lock();

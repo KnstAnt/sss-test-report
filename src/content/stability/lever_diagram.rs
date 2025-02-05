@@ -1,6 +1,7 @@
 use crate::content::misc::{Curve, ICurve};
 
 pub struct LeverDiagram {
+    header: Vec<String>,
     // angle, dso
     target: Vec<(f64, f64, f64, f64)>,
     result: Vec<(f64, f64)>,
@@ -8,17 +9,56 @@ pub struct LeverDiagram {
 //
 impl LeverDiagram {
     //
-    pub fn new(target: &[(f64, f64, f64, f64)], result: &[(f64, f64)]) -> Self {
+    pub fn new(header: &[&str], target: &[(f64, f64, f64, f64)], result: &[(f64, f64)]) -> Self {
         Self {
+            header: header.iter().map(|s| s.to_string()).collect(),
             target: Vec::from(target),
             result: Vec::from(result),
         }
     }
     //
+    pub fn from(language: &String, target: &[(f64, f64, f64, f64)], result: &[(f64, f64)]) -> Self {
+        let header = if language.contains("en") {
+            vec![
+                "№",
+                "Name",
+                "Dimension",
+                "Documentation",
+                "Calculation",
+                "%",
+                "Tolerances, %",
+                "Tolerances, abs",
+                "Status",
+            ]
+        } else {
+            vec![
+                "Крен",
+                "Плечо документация",
+                "Плечо расчет",
+                "%",
+                "Допуск, %",
+                "Допуск, абс.",
+                "Статус",
+            ]
+        }
+        .to_owned();     
+        Self::new(
+            &header,
+            target,
+            result,
+        )
+    }
+    //
     pub fn to_string(self) -> Result<String, crate::error::Error> {
-        let mut string = "### Диаграмма статической остойчивости\n\n".to_owned() + 
-        &"| Крен | Плечо документация | Плечо расчет | %   | Допуск % | Допуск, абс. | Статус |\n"  +
-        &"|---|---|---|---|---|---|---|\n";
+        let header = self
+        .header
+        .iter()
+        .map(|s| format!("|{s}"))
+        .collect::<String>()
+        + "|\n"
+        + &(0..self.header.len()).map(|_| "|---").collect::<String>()
+        + "|\n";
+        let mut string = "### Диаграмма статической остойчивости\n\n".to_owned() + &header;
         let result = Curve::new_linear(&self.result)?;
         for (angle, target, limit_p, limit_abs) in self.target {
             let result = result.value(angle as f64)?;
