@@ -107,6 +107,7 @@ impl Strength {
             (
                 Some(TemplateMax::new(
                     "SF".to_owned(),
+                    language,
                     &sf_result,
                     sf_max_abs,
                     sf_max_percent,
@@ -114,6 +115,7 @@ impl Strength {
                 )),
                 Some(TemplateMax::new(
                     "BM".to_owned(),
+                    language,
                     &bm_result,
                     bm_max_abs,
                     bm_max_percent,
@@ -126,6 +128,7 @@ impl Strength {
         Self::new(
             title,
             Template::new(
+                language.clone(),
                 header_sf,
                 "SF".to_owned(),
                 &sf_result,
@@ -134,6 +137,7 @@ impl Strength {
             ),
             shear_force_max,
             Template::new(
+                language.clone(),
                 header_bm,
                 "BM".to_owned(),
                 &bm_result,

@@ -8,6 +8,8 @@ use crate::db::bulk_cargo::BulkCargoData;
 use crate::db::bulkhead::BulkheadData;
 use crate::db::cargo::CargoData;
 use crate::db::container::ContainerData;
+use crate::db::criterion::CriteriaData;
+use crate::db::parameters::ParameterData;
 use crate::db::tank::TankData;
 use crate::error::Error;
 //use crate::formatter::Page;
@@ -32,8 +34,8 @@ pub struct Report {
     displacement_target: Vec<Vec<String>>,
     draught_target: Vec<Vec<String>>,
     parameters_target: Vec<Vec<String>>,
-    criteria_result: HashMap<i32, f64>, // criterion_id, value
-    parameters_result: HashMap<i32, f64>,// parameter_id, value
+    criteria_result: HashMap<i32, CriteriaData>, // criterion_id, value
+    parameters_result: HashMap<i32, ParameterData>,// parameter_id, value
     ballast_tanks: Vec<TankData>,
     stores_tanks: Vec<TankData>,
     stores: Vec<CargoData>,
@@ -182,13 +184,15 @@ impl Report {
                 // Если ид=17 - Минимальная метацентрическая высота деления на отсеки
                 // то для отчета берем целевое значение
                 if v.0 != 17 {
-                    (v.0, v.1.1)
+                    (v.0, v.1)
                 } else {
-                    (v.0, v.1.0)
+                    let mut data = v.1;
+                    data.result = data.target;
+                    (v.0, data)
                 }).collect();
         self.parameters_result =
             self.api_server.get_parameters_data()?.data().into_iter().map(|v| 
-                    (v.0, v.1.1)
+                    (v.0, v.1)
         ).collect();
         self.strength_result =
             self.api_server.get_strength_result()?;
@@ -216,7 +220,7 @@ impl Report {
             self.api_server.get_general_cargo()?.data();
         Ok(())
     }
-    //
+    //   
     pub fn get_ship_wide(&mut self) -> Result<(), Error> {
         self.ship_wide = self.api_server.get_ship_wide()
             .map_err(|e| format!("Parser get_ship_wide error: {e}"))?

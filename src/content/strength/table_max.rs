@@ -6,27 +6,41 @@ pub struct TableMax {
 //
 impl TableMax {
     // parameter_name, min, doc, calc, max, limit_%
-    pub fn new(name: &str, values: &[(String, f64, f64, f64, f64, f64)]) -> Self {
-        Self::new_header(
-            &vec![
-                "Параметр",
-                &format!("${name}_{{min}}$"),
-                "Документация",
-                "Расчет",
-                &format!("${name}_{{max}}$"),
-                "%",
-                "Допуск, %",
-                "Статус",
-            ],
-            values,
-        )
-    }
-    //
-    pub fn new_header(header: &[&str], values: &[(String, f64, f64, f64, f64, f64)]) -> Self {
-        Self {
+    pub fn new(header: &[String], values: &[(String, f64, f64, f64, f64, f64)]) -> Self {
+        Self{
             header: header.iter().map(|s| s.to_string()).collect(),
             values: Vec::from(values),
         }
+    }
+    //
+    pub fn new_header(language: &String, name: &str, values: &[(String, f64, f64, f64, f64, f64)]) -> Self {
+        let header = if language.contains("en") {
+            vec![
+                "Parameter".to_string(),
+                format!("${name}_{{min}}$"),
+                "Documentation".to_string(),
+                "Calculation".to_string(),
+                format!("${name}_{{max}}$"),
+                "%".to_string(),
+                "Tolerances, %".to_string(),
+                "Status".to_string(),
+            ]
+        } else {
+            vec![
+                "Параметр".to_string(),
+                format!("${name}_{{min}}$"),
+                "Документация".to_string(),
+                "Расчет".to_string(),
+                format!("${name}_{{max}}$"),
+                "%".to_string(),
+                "Допуск, %".to_string(),
+                "Статус".to_string(),
+            ]
+        };
+        Self::new(
+            &header,
+            values,
+        )
     }
     //
     pub fn to_string(self) -> Result<String, crate::error::Error> {

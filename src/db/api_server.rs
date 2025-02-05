@@ -9,8 +9,10 @@ use super::bulkhead::BulkheadDataArray;
 use super::cargo::CargoDataArray;
 use super::computed_frame::ComputedFrameDataArray;
 use super::container::ContainerDataArray;
+use super::criterion::CriteriaDataArray;
 use super::data::DataRowArray;
 use super::data::DataShipArray;
+use super::parameters::ParameterDataArray;
 use super::stability_diagram::StabilityDiagramDataArray;
 use super::strength_limit::StrengthLimitDataArray;
 use super::strength_result::StrengthResultDataArray;
@@ -66,7 +68,74 @@ impl ApiServer {
     }
     /// Чтение данных из БД. Функция читает данные за несколько запросов,
     /// парсит их и проверяет данные на корректность.
-    pub fn get_criterion_data(&mut self) -> Result<DataRowArray, Error> {
+    /// Чтение данных из БД. Функция читает данные за несколько запросов,
+    /// парсит их и проверяет данные на корректность.
+    pub fn get_criterion_data(&mut self) -> Result<CriteriaDataArray, Error> {
+        CriteriaDataArray::parse(
+            &self
+                .fetch(&format!(
+                "SELECT 
+                    head.id AS id, \
+                    head.{} as name, \
+                    unit.{} as unit, \
+                    values.actual_value AS result, \
+                    values.limit_value AS target, \
+                    values.state as state
+                FROM 
+                    criterion as head
+                JOIN
+                    unit as unit on head.unit_id=unit.id
+                JOIN
+                    criterion_values AS values ON head.id=values.criterion_id
+                WHERE 
+                    values.ship_id={} AND 
+                    head.category_id = 1 AND
+                    values.project_id IS NOT DISTINCT FROM {}
+                ORDER BY
+                    head.id;",
+                    self.language("title_rus", "title_eng"),
+                    self.language("symbol_rus", "symbol_eng"),
+                    self.ship_id, 
+                    self.project_id,
+                ))
+                .map_err(|e| {
+                    Error::FromString(format!("api_server get_criterion_data error: {e}"))
+                })?,
+        )
+        .map_err(|e| Error::FromString(format!("api_server get_criterion_data error: {e}")))
+    }
+    //
+    pub fn get_parameters_data(&mut self) -> Result<ParameterDataArray, Error> {
+        ParameterDataArray::parse(
+            &self
+                .fetch(&format!(
+                "SELECT 
+                    head.id as id, \
+                    head.{} as name, \
+                    data.result as result, \
+                    unit.{} as unit
+                FROM 
+                    parameter_head as head
+                JOIN                
+                    parameter_data as data on data.parameter_id=head.id
+                JOIN
+                    unit as unit on head.unit_id=unit.id
+                WHERE 
+                    ship_id={} AND project_id IS NOT DISTINCT FROM {}
+                ORDER BY
+                    head.id;",
+                    self.language("title_rus", "title_eng"),
+                    self.language("symbol_rus", "symbol_eng"),
+                    self.ship_id, 
+                    self.project_id,
+                ))
+                .map_err(|e| {
+                    Error::FromString(format!("api_server get_parameters_data error: {e}"))
+                })?,
+        )
+        .map_err(|e| Error::FromString(format!("api_server get_parameters_data error: {e}")))
+    }
+ /*   pub fn get_criterion_data(&mut self) -> Result<DataRowArray, Error> {
         DataRowArray::parse(
             &self
             .fetch(&format!(
@@ -94,7 +163,7 @@ impl ApiServer {
                 })?,
         )
         .map_err(|e| Error::FromString(format!("api_server get_parameters_data error: {e}")))
-    }
+    }*/
     //
     pub fn get_ship_wide(&mut self) -> Result<DataShipArray, Error> {
         DataShipArray::parse(
@@ -177,16 +246,16 @@ impl ApiServer {
             &self
                 .fetch(&format!(
                     "SELECT 
-                {} as name, \
-                mass, \
-                mass_shift_x as x_g, \
-                mass_shift_y as y_g, \
-                mass_shift_z as z_g, \
-                m_f_s_x as f_sx 
-            FROM 
-                compartment 
-            WHERE 
-                category_id=2 AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
+                        {} as name, \
+                        mass, \
+                        mass_shift_x as x_g, \
+                        mass_shift_y as y_g, \
+                        mass_shift_z as z_g, \
+                        m_f_s_x as f_sx 
+                    FROM 
+                        compartment 
+                    WHERE 
+                        category_id=2 AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
                     self.language("name_rus", "name_engl"),
                     self.ship_id,
                     self.project_id,
@@ -226,15 +295,15 @@ impl ApiServer {
             &self
                 .fetch(&format!(
                     "SELECT 
-                name as name, \
-                mass, \
-                mass_shift_x as x_g, \
-                mass_shift_y as y_g, \
-                mass_shift_z as z_g
-            FROM 
-                cargo 
-            WHERE 
-                category_id=9 AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
+                        name as name, \
+                        mass, \
+                        mass_shift_x as x_g, \
+                        mass_shift_y as y_g, \
+                        mass_shift_z as z_g
+                    FROM 
+                        cargo 
+                    WHERE 
+                        category_id=9 AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
                     self.ship_id, self.project_id,
                 ))
                 .map_err(|e| Error::FromString(format!("api_server get_stores error: {e}")))?,
@@ -247,24 +316,24 @@ impl ApiServer {
             &self
                 .fetch(&format!(
                     "SELECT 
-                b.{} as name, \
-                bp.{} as position, \
-                b.mass, \
-                bp.mass_shift_x as x_g, \
-                bp.mass_shift_y as y_g, \
-                bp.mass_shift_z as z_g
-            FROM 
-                bulkhead as b
-            JOIN 
-                bulkhead_place as bp ON b.id = bp.bulkhead_id
-            WHERE 
-                b.ship_id={} AND b.project_id IS NOT DISTINCT FROM {};",
-                    self.language("name_rus", "name_engl"),
-                    self.language("name_rus", "name_engl"),
-                    self.ship_id,
-                    self.project_id,
-                ))
-                .map_err(|e| Error::FromString(format!("api_server get_bulkheads error: {e}")))?,
+                        b.{} as name, \
+                        bp.{} as position, \
+                        b.mass, \
+                        bp.mass_shift_x as x_g, \
+                        bp.mass_shift_y as y_g, \
+                        bp.mass_shift_z as z_g
+                    FROM 
+                        bulkhead as b
+                    JOIN 
+                        bulkhead_place as bp ON b.id = bp.bulkhead_id
+                    WHERE 
+                        b.ship_id={} AND b.project_id IS NOT DISTINCT FROM {};",
+                            self.language("name_rus", "name_engl"),
+                            self.language("name_rus", "name_engl"),
+                            self.ship_id,
+                            self.project_id,
+                        ))
+                        .map_err(|e| Error::FromString(format!("api_server get_bulkheads error: {e}")))?,
         )
         .map_err(|e| Error::FromString(format!("api_server get_bulkheads error: {e}")))
     }
@@ -274,16 +343,16 @@ impl ApiServer {
             &self
                 .fetch(&format!(
                     "SELECT 
-                {} as name, \
-                mass, \
-                mass_shift_x as x_g, \
-                mass_shift_y as y_g, \
-                mass_shift_z as z_g, \
-                grain_moment
-            FROM 
-                hold_compartment 
-            WHERE 
-                ship_id={} AND project_id IS NOT DISTINCT FROM {};",
+                        {} as name, \
+                        mass, \
+                        mass_shift_x as x_g, \
+                        mass_shift_y as y_g, \
+                        mass_shift_z as z_g, \
+                        grain_moment
+                    FROM 
+                        hold_compartment 
+                    WHERE 
+                        ship_id={} AND project_id IS NOT DISTINCT FROM {};",
                     self.language("name_rus", "name_engl"),
                     self.ship_id,
                     self.project_id,
@@ -298,22 +367,22 @@ impl ApiServer {
             &self
                 .fetch(&format!(
                     "SELECT 
-                c.owner_code as owner_code, \
-                c.serial_code as serial_code, \
-                c.check_digit, \
-                cs.bay_number as bay_number, \
-                cs.row_number as row_number, \
-                cs.tier_number as tier_number, \
-                c.gross_mass as mass, \
-                (cs.bound_x1 + (cs.bound_x2 - cs.bound_x1) / 2) AS x_g, \
-                (cs.bound_y1 + (cs.bound_y2 - cs.bound_y1) / 2) AS y_g, \
-                (cs.bound_z1 + (cs.bound_z2 - cs.bound_z1) / 2) AS z_g
-            FROM 
-                container as c
-            JOIN 
-                container_slot as cs ON cs.container_id = c.id
-            WHERE 
-                c.ship_id={} AND c.project_id IS NOT DISTINCT FROM {};",
+                        c.owner_code as owner_code, \
+                        c.serial_code as serial_code, \
+                        c.check_digit, \
+                        cs.bay_number as bay_number, \
+                        cs.row_number as row_number, \
+                        cs.tier_number as tier_number, \
+                        c.gross_mass as mass, \
+                        (cs.bound_x1 + (cs.bound_x2 - cs.bound_x1) / 2) AS x_g, \
+                        (cs.bound_y1 + (cs.bound_y2 - cs.bound_y1) / 2) AS y_g, \
+                        (cs.bound_z1 + (cs.bound_z2 - cs.bound_z1) / 2) AS z_g
+                    FROM 
+                        container as c
+                    JOIN 
+                        container_slot as cs ON cs.container_id = c.id
+                    WHERE 
+                        c.ship_id={} AND c.project_id IS NOT DISTINCT FROM {};",
                     self.ship_id, self.project_id,
                 ))
                 .map_err(|e| Error::FromString(format!("api_server get_container error: {e}")))?,
@@ -326,15 +395,15 @@ impl ApiServer {
             &self
                 .fetch(&format!(
                     "SELECT 
-                name as name, \
-                mass, \
-                mass_shift_x as x_g, \
-                mass_shift_y as y_g, \
-                mass_shift_z as z_g
-            FROM 
-                cargo 
-            WHERE 
-                category_id=14 AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
+                        name as name, \
+                        mass, \
+                        mass_shift_x as x_g, \
+                        mass_shift_y as y_g, \
+                        mass_shift_z as z_g
+                    FROM 
+                        cargo 
+                    WHERE 
+                        category_id=14 AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
                     self.ship_id, self.project_id,
                 ))
                 .map_err(|e| {

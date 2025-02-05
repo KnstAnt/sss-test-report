@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{content::Content, error::Error};
+use crate::{content::Content, db::parameters::ParameterData, error::Error};
 
 use super::template::Template;
 
@@ -13,11 +13,11 @@ impl Draught {
     pub fn from(
         language: &String,
         target: &Vec<Vec<String>>,
-        result: &HashMap<i32, f64>,
+        result: &HashMap<i32, ParameterData>,
         ship_wide: f64,
     ) -> Result<Self, Error> {
         Ok(Self {
-            table: Template::from(
+            table: Template::from_parameters(
                 language,
                 target,
                 result,

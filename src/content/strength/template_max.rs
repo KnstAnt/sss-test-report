@@ -4,6 +4,7 @@ use crate::content::misc::{Curve, ICurve};
 //
 pub struct TemplateMax {
     name: String,
+    language: String,
     result: Vec<(f64, f64)>, //x, value
     target_abs: (f64, f64, f64), //x, value, limit_%
     target_percent: (f64, f64, f64), //x, value, limit_%
@@ -14,6 +15,7 @@ impl TemplateMax {
     //
     pub fn new( 
         name: String,
+        language: &String,
         result: &[(f64, f64)],
         target_abs: (f64, f64, f64),
         target_percent: (f64, f64, f64),
@@ -21,6 +23,7 @@ impl TemplateMax {
     ) -> Self {
         Self {
             name,
+            language: language.clone(),
             result: Vec::from(result),
             target_abs,
             target_percent,
@@ -39,9 +42,14 @@ impl Content for TemplateMax {
         let limit_max = Curve::new_linear(&limit_max)?; 
         let mut values = Vec::new();
         let x = self.target_abs.0;
-        values.push(("Максимальное значение".to_owned(), limit_min.value(x)?, self.target_abs.1, result.value(x)?, limit_max.value(x)?, self.target_abs.2));
+        let (value_str, percent_str) = if self.language.contains("en") {
+            ("Maximum value", "Maximum percent")
+        } else {
+            ("Максимальное значение", "Максимальный процент")
+        };
+        values.push((value_str.to_owned(), limit_min.value(x)?, self.target_abs.1, result.value(x)?, limit_max.value(x)?, self.target_abs.2));
         let x = self.target_percent.0;
-        values.push(("Максимальный процент".to_owned(), limit_min.value(x)?, self.target_percent.1, result.value(x)?, limit_max.value(x)?, self.target_percent.2));
-        super::table_max::TableMax::new(&self.name, &values).to_string()
+        values.push((percent_str.to_owned(), limit_min.value(x)?, self.target_percent.1, result.value(x)?, limit_max.value(x)?, self.target_percent.2));
+        super::table_max::TableMax::new_header(&self.language, &self.name, &values).to_string()
     } 
 }

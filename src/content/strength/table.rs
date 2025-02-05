@@ -6,7 +6,7 @@ pub struct Table {
 //
 impl Table {
     // fr, min, doc, calc, max, limit_%
-    pub fn new(name: &str, values: &[(i32, f64, f64, f64, f64, f64)]) -> Self {
+    pub fn new(language: &String, name: &str, values: &[(i32, f64, f64, f64, f64, f64)]) -> Self {
         Self::new_header(
             &vec![
                 "Fr",

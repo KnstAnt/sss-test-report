@@ -1,6 +1,7 @@
 use crate::content::misc::{Curve, ICurve};
 
 pub struct LeverDiagram {
+    title: String,
     header: Vec<String>,
     // angle, dso
     target: Vec<(f64, f64, f64, f64)>,
@@ -9,8 +10,14 @@ pub struct LeverDiagram {
 //
 impl LeverDiagram {
     //
-    pub fn new(header: &[&str], target: &[(f64, f64, f64, f64)], result: &[(f64, f64)]) -> Self {
+    pub fn new(
+        title: &str,
+        header: &[&str],
+        target: &[(f64, f64, f64, f64)],
+        result: &[(f64, f64)],
+    ) -> Self {
         Self {
+            title: title.to_owned(),
             header: header.iter().map(|s| s.to_string()).collect(),
             target: Vec::from(target),
             result: Vec::from(result),
@@ -18,47 +25,49 @@ impl LeverDiagram {
     }
     //
     pub fn from(language: &String, target: &[(f64, f64, f64, f64)], result: &[(f64, f64)]) -> Self {
-        let header = if language.contains("en") {
-            vec![
-                "№",
-                "Name",
-                "Dimension",
-                "Documentation",
-                "Calculation",
-                "%",
-                "Tolerances, %",
-                "Tolerances, abs",
-                "Status",
-            ]
+        let (title, header) = if language.contains("en") {
+            (
+                "Stability curve",
+                vec![
+                    "№",
+                    "Name",
+                    "Dimension",
+                    "Documentation",
+                    "Calculation",
+                    "%",
+                    "Tolerances, %",
+                    "Tolerances, abs",
+                    "Status",
+                ],
+            )
         } else {
-            vec![
-                "Крен",
-                "Плечо документация",
-                "Плечо расчет",
-                "%",
-                "Допуск, %",
-                "Допуск, абс.",
-                "Статус",
-            ]
+            (
+                "Диаграмма статической остойчивости",
+                vec![
+                    "Крен",
+                    "Плечо документация",
+                    "Плечо расчет",
+                    "%",
+                    "Допуск, %",
+                    "Допуск, абс.",
+                    "Статус",
+                ],
+            )
         }
-        .to_owned();     
-        Self::new(
-            &header,
-            target,
-            result,
-        )
+        .to_owned();
+        Self::new(title, &header, target, result)
     }
     //
     pub fn to_string(self) -> Result<String, crate::error::Error> {
         let header = self
-        .header
-        .iter()
-        .map(|s| format!("|{s}"))
-        .collect::<String>()
-        + "|\n"
-        + &(0..self.header.len()).map(|_| "|---").collect::<String>()
-        + "|\n";
-        let mut string = "### Диаграмма статической остойчивости\n\n".to_owned() + &header;
+            .header
+            .iter()
+            .map(|s| format!("|{s}"))
+            .collect::<String>()
+            + "|\n"
+            + &(0..self.header.len()).map(|_| "|---").collect::<String>()
+            + "|\n";
+        let mut string = format!("### {}\n\n", self.title) + &header;
         let result = Curve::new_linear(&self.result)?;
         for (angle, target, limit_p, limit_abs) in self.target {
             let result = result.value(angle as f64)?;
@@ -78,7 +87,7 @@ impl LeverDiagram {
             } else {
                 format!(" ")
             };
-        //    dbg!(&angle, &target, &result, delta_result_abs, delta_result_percent, limit_p, limit_abs, state);
+            //    dbg!(&angle, &target, &result, delta_result_abs, delta_result_percent, limit_p, limit_abs, state);
             string += &format!(
                 "|{}|{:.3}|{:.3}|{delta_result_percent}| ±{} % | ±{:.3} | {state} |\n",
                 angle as i32, target, result, limit_p, limit_abs

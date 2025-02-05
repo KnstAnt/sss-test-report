@@ -14,6 +14,8 @@ pub mod cargo;
 pub mod bulkhead;
 pub mod bulk_cargo;
 pub mod container;
+pub mod criterion;
+pub mod parameters;
 
 /// Массив ключ + значение
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

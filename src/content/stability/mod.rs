@@ -4,7 +4,7 @@ use criterion::Criterion;
 use lever_diagram::LeverDiagram;
 use parameters::Parameters;
 
-use crate::error::Error;
+use crate::{db::{criterion::CriteriaData, parameters::ParameterData}, error::Error};
 
 use super::Content;
 
@@ -40,9 +40,9 @@ impl Stability {
     pub fn new_named(
         language: &String,
         criteria_target: &Vec<Vec<String>>,
-        criteria_result: &HashMap<i32, f64>, // criterion_id, value        
+        criteria_result: &HashMap<i32, CriteriaData>, // criterion_id, value        
         parameters_target: &Vec<Vec<String>>,
-        parameters_result: &HashMap<i32, f64>,
+        parameters_result: &HashMap<i32, ParameterData>,
         ship_wide: f64,
         lever_diagram_target: &[(f64, f64, f64, f64)],
         lever_diagram_result: &[(f64, f64)],

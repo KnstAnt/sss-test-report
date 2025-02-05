@@ -1,11 +1,12 @@
 use std::collections::HashMap;
 
-use crate::{content::Content, error::Error};
+use crate::{content::Content, db::parameters::ParameterData, error::Error};
 
 use super::template::Template;
 
 
 pub struct Parameters {
+    title: String, 
     table: Template,
 }
 //
@@ -13,11 +14,17 @@ impl Parameters {
     pub fn from(
         language: &String,
         target: &Vec<Vec<String>>,
-        result: &HashMap<i32, f64>,
+        result: &HashMap<i32, ParameterData>,
         ship_wide: f64,
     ) -> Result<Self, Error> {
+        let title = if language.contains("en") {
+            "Stability parameters"
+        } else {
+            "Параметры остойчивости"
+        }.to_owned();
         Ok(Self {
-            table: Template::from(
+            title,
+            table: Template::from_parameters(
                 language,
                 target,
                 result,
@@ -30,6 +37,6 @@ impl Parameters {
 impl Content for Parameters {
     //
     fn to_string(self) -> Result<String, crate::error::Error> {
-        Ok("### Параметры остойчивости\n\n".to_string() + &self.table.to_string()?)
+        Ok(format!("### {}\n\n", self.title) + &self.table.to_string()?)
     }
 }

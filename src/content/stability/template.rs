@@ -1,5 +1,5 @@
 use super::unit::TableUnit;
-use crate::{content::Content, error::Error};
+use crate::{content::Content, db::{criterion::CriteriaData, parameters::ParameterData}, error::Error};
 use std::collections::HashMap;
 
 //
@@ -20,8 +20,7 @@ impl Template {
     //
     pub fn from(
         language: &String,
-        target: &Vec<Vec<String>>,
-        result: &HashMap<i32, f64>,
+        data: &[TableUnit], 
         ship_wide: f64,
     ) -> Result<Self, Error> {
         let header = if language.contains("en") {
@@ -50,15 +49,45 @@ impl Template {
             ]
         }
         .to_owned();
-        let mut data = Vec::new();
-        for row in target.iter() {
-            data.push(TableUnit::from_data(row, result)?);
-        }
         Ok(Self::new(
             &header,
             &data,
             ship_wide,
         ))
+    }
+    //
+    pub fn from_parameters(
+        language: &String,
+        target: &Vec<Vec<String>>,
+        result: &HashMap<i32, ParameterData>,
+        ship_wide: f64,
+    ) -> Result<Self, Error> {
+        let mut data = Vec::new();
+        for row in target.iter() {
+            data.push(TableUnit::from_parameters(row, result)?);
+        }
+        Self::from(
+            language,
+            &data,
+            ship_wide,
+        )
+    }
+    //
+    pub fn from_criterion(
+        language: &String,
+        target: &Vec<Vec<String>>,
+        result: &HashMap<i32, CriteriaData>,
+        ship_wide: f64,
+    ) -> Result<Self, Error> {
+        let mut data = Vec::new();
+        for row in target.iter() {
+            data.push(TableUnit::from_criterion(row, result)?);
+        }
+        Self::from(
+            language,
+            &data,
+            ship_wide,
+        )
     }
 }
 //
@@ -110,7 +139,7 @@ impl Content for Template {
             };
             let mut process_limit_percent = |limit: &Option<String>| -> (Option<bool>, String) {
                 let limit_res = if let Some(limit) = limit {
-                    if limit.contains("ширины судна") {
+                    if limit.contains("ширины судна") || limit.contains("breadth") {
                         if let (Some(delta), Some(limit)) = (delta_result_abs, parse_limit(limit)) {
                             if self.ship_wide > 0. {
                                 delta_result_percent = Some(delta * 100. / self.ship_wide);
