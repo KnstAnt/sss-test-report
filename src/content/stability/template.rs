@@ -71,7 +71,9 @@ impl Template {
     ) -> Result<Self, Error> {
         let mut data = Vec::new();
         for row in target.iter() {
-            data.push(TableUnit::from_parameters(row, result)?);
+            if let Ok(row) = TableUnit::from_parameters(row, result) {
+                data.push(row);
+            }
         }
         Self::from(
             language,
@@ -88,7 +90,9 @@ impl Template {
     ) -> Result<Self, Error> {
         let mut data = Vec::new();
         for row in target.iter() {
-            data.push(TableUnit::from_criterion(row, result)?);
+            if let Ok(row) = TableUnit::from_criterion(row, result) {
+                data.push(row);
+            }
         }
         Self::from(
             language,

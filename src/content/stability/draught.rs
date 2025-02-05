@@ -6,6 +6,7 @@ use super::template::Template;
 
 
 pub struct Draught {
+    title: String,
     table: Template,
 }
 //
@@ -16,7 +17,13 @@ impl Draught {
         result: &HashMap<i32, ParameterData>,
         ship_wide: f64,
     ) -> Result<Self, Error> {
+        let title = if language.contains("en") {
+            "Draft parameters"
+        } else  {
+            "Параметры посадки"
+        }.to_owned();
         Ok(Self {
+            title,
             table: Template::from_parameters(
                 language,
                 target,
@@ -30,6 +37,6 @@ impl Draught {
 impl Content for Draught {
     //
     fn to_string(self) -> Result<String, crate::error::Error> {
-        Ok("## Параметры посадки\n\n".to_string() + &self.table.to_string()?)
+        Ok(format!("## {}\n\n", self.title) + &self.table.to_string()?)
     }
 }

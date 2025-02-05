@@ -85,7 +85,7 @@ impl ApiServer {
                     criterion as head
                 JOIN
                     unit as unit on head.unit_id=unit.id
-                JOIN
+                LEFT JOIN
                     criterion_values AS values ON head.id=values.criterion_id
                 WHERE 
                     values.ship_id={} AND 
@@ -116,10 +116,10 @@ impl ApiServer {
                     unit.{} as unit
                 FROM 
                     parameter_head as head
-                JOIN                
-                    parameter_data as data on data.parameter_id=head.id
                 JOIN
-                    unit as unit on head.unit_id=unit.id
+                    unit as unit on head.unit_id=unit.id                    
+                LEFT JOIN                
+                    parameter_data as data on data.parameter_id=head.id
                 WHERE 
                     ship_id={} AND project_id IS NOT DISTINCT FROM {}
                 ORDER BY

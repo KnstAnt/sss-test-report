@@ -65,7 +65,7 @@ impl TableUnit {
             let result = data.result.clone();
             (name, unit, result)
         } else {
-            ("".to_owned(), "".to_owned(), None) 
+            return Err(Error::FromString(format!("TableUnit from_parameters error: no data!")));
         };
         Ok(Self::new(
             id,
@@ -103,11 +103,11 @@ impl TableUnit {
         let limit_abs = data.get(5).map_or(None, |s| Some(s.to_owned()) );
         let (name, unit, result) = if let Some(data) = result.get(&id) {
             let name = data.name.clone();
-            let unit = data.unit.clone();
+            let unit = data.unit.clone().unwrap_or("".to_owned());
             let result = data.result.clone();
             (name, unit, result)
         } else {
-            ("".to_owned(), "".to_owned(), None) 
+            return Err(Error::FromString(format!("TableUnit from_criterion error: no data!")));
         };
         Ok(Self::new(
             id,

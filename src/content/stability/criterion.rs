@@ -6,6 +6,7 @@ use super::template::Template;
 
 
 pub struct Criterion {
+    title: String,
     table: Template,
 }
 //
@@ -16,7 +17,13 @@ impl Criterion {
         result: &HashMap<i32, CriteriaData>,
         ship_wide: f64,
     ) -> Result<Self, Error> {
+        let title = if language.contains("en") {
+            "Criteria"
+        } else  {
+            "Критерии"
+        }.to_owned();
         Ok(Self {
+            title,
             table: Template::from_criterion(
                 language,
                 &target.clone().into_iter().skip(1).collect::<Vec<_>>(),
@@ -30,6 +37,6 @@ impl Criterion {
 impl Content for Criterion {
     //
     fn to_string(self) -> Result<String, crate::error::Error> {
-        Ok("### Критерии\n\n".to_string() + &self.table.to_string()?)
+        Ok(format!("### {}\n\n", self.title) + &self.table.to_string()?)
     }
 }
