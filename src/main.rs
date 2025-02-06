@@ -15,7 +15,7 @@ fn main() {
     env_logger::init();
     info!("starting up");
     let ship_id = 2;
-    let path = "src/bin/SSS_Sofia_test4.xlsx";
+    let path = "src/bin/SSS_Sofia_test3.xlsx";
     let language = Some("ru".to_owned());
     let mut report = Report::new(
         language.clone(),
@@ -45,7 +45,7 @@ fn main() {
         //       println!("{}", error.to_string());
         return;
     }
-    if let Err(error) = report.write("src/bin/result4_ru.md") {
+    if let Err(error) = report.write("src/bin/result3_ru.md") {
         let mut stdout = io::stdout().lock();
         stdout.write_all(error.to_string().as_bytes()).unwrap();
         //       println!("{}", error.to_string());
@@ -80,7 +80,7 @@ fn main() {
         //       println!("{}", error.to_string());
         return;
     }
-    if let Err(error) = report.write("src/bin/result4_en.md") {
+    if let Err(error) = report.write("src/bin/result3_en.md") {
         let mut stdout = io::stdout().lock();
         stdout.write_all(error.to_string().as_bytes()).unwrap();
         //       println!("{}", error.to_string());
