@@ -28,16 +28,18 @@ fn main() {
         language.clone(),
         Db::new(
         &dbg,
+        conf.api.params.ship_id.clone(),
+        conf.api.params.project_id.clone().unwrap_or("NULL".to_owned()),
+        language,        
         ApiClient::new(
             &dbg,
             conf.api.address.database.clone(),
             conf.api.address.host.clone(),
             conf.api.address.port.clone(),
         ),
-        language,
     ),
     );
-    if let Err(error) = report.get_target(&(conf.data.dir.to_owned() + "/" + &conf.data.name) ) {
+    if let Err(error) = report.get_target(&conf.data.dir, &conf.data.name) {
         let mut stdout = io::stdout().lock();
         stdout.write_all(error.to_string().as_bytes()).unwrap();
         //       println!("{}", error.to_string());
@@ -55,7 +57,7 @@ fn main() {
         //       println!("{}", error.to_string());
         return;
     }
-    if let Err(error) = report.write("src/bin/result3_ru.md") {
+    if let Err(error) = report.write(&conf.data.dir, &conf.data.name) {
         let mut stdout = io::stdout().lock();
         stdout.write_all(error.to_string().as_bytes()).unwrap();
         //       println!("{}", error.to_string());
@@ -63,20 +65,22 @@ fn main() {
     }
     let language = Some("en".to_owned());
     let mut report = Report::new(
-        &dbg,
+        &dbg,        
         language.clone(),
         Db::new(
             &dbg,
+            conf.api.params.ship_id.clone(),
+            conf.api.params.project_id.clone().unwrap_or("NULL".to_owned()),
+            language,            
             ApiClient::new(
-                &dbg,
+                &dbg,                
                 conf.api.address.database.clone(),
                 conf.api.address.host.clone(),
                 conf.api.address.port.clone(),
-            ),
-            language,
+            ),            
         )
     );
-    if let Err(error) = report.get_target(&(conf.data.dir.to_owned() + "/" + &conf.data.name)) {
+    if let Err(error) = report.get_target(&conf.data.dir, &conf.data.name) {
         let mut stdout = io::stdout().lock();
         stdout.write_all(error.to_string().as_bytes()).unwrap();
         //       println!("{}", error.to_string());
@@ -94,7 +98,7 @@ fn main() {
         //       println!("{}", error.to_string());
         return;
     }
-    if let Err(error) = report.write("src/bin/result3_en.md") {
+    if let Err(error) = report.write(&conf.data.dir, &conf.data.name) {
         let mut stdout = io::stdout().lock();
         stdout.write_all(error.to_string().as_bytes()).unwrap();
         //       println!("{}", error.to_string());

@@ -73,20 +73,22 @@ impl Report {
         }
     }
     //
-    pub fn get_target(&mut self, path: &str) -> Result<(), Error> {
+    pub fn get_target(&mut self, dir: &str, name: &str) -> Result<(), Error> {
+        let error = Error::new(&self.dbg, "get_target");
+        let path = dir.to_owned() + "/" + name + ".xlsx";
         let mut workbook: Xlsx<_> = open_workbook(path).expect("Cannot open file");
         let workbook: HashMap<String, Range<Data>> = workbook
             .worksheets()
             .into_iter()
             .filter(|(_, range)| range.used_cells().count() > 0)
             .collect();
-        self.general = Report::convert(workbook.get("General").ok_or(Error::FromString(
+        self.general = Report::convert(workbook.get("General").ok_or(error.err(
             format!("Report get_target error: no table General!"),
         ))?)
         .iter()
         .map(|v| (v[0].clone(), v[1].clone()))
         .collect();
-        let strength = Report::convert(workbook.get("SF&BM").ok_or(Error::FromString(format!(
+        let strength = Report::convert(workbook.get("SF&BM").ok_or(error.err(format!(
             "Report get_target error: no table SF&BM!"
         )))?);
         self.strength_target = strength
@@ -100,7 +102,7 @@ impl Report {
                     v[4].parse::<f64>(),
                 ) {
                     (Ok(x), Ok(fr), Ok(sf), Ok(bm), Ok(limit_p)) => Some((x, fr, sf, bm, limit_p)),
-                    _ => None, //Err(Error::FromString(format!("Report parse error: strength {:?}", v))),
+                    _ => None, //Err(error.pass(format!("Report parse error: strength {:?}", v))),
                 }
             })
             .collect();
@@ -115,7 +117,7 @@ impl Report {
                         v[3].parse::<f64>(),
                     ) {
                         (name, Ok(x), Ok(value), Ok(limit_p)) => Some((name, x, value, limit_p)),
-                        _ => None, //Err(Error::FromString(format!("Report parse error: strength_max {:?}", v))),
+                        _ => None, //Err(error.pass(format!("Report parse error: strength_max {:?}", v))),
                     }
                 })
                 .collect()
@@ -123,7 +125,7 @@ impl Report {
             Vec::new()
         };
         let lever_diagram = Report::convert(workbook.get("Stabilitycurve").ok_or(
-            Error::FromString(format!("Report get_target error: no table Stabilitycurve!")),
+            error.err(format!("Report get_target error: no table Stabilitycurve!")),
         )?);
         self.lever_diagram_target = lever_diagram
             .iter()
@@ -135,14 +137,14 @@ impl Report {
                     v[3].parse::<f64>(),
                 ) {
                     (Ok(a), Ok(l), Ok(limit_p), Ok(limit_abs)) => Some((a, l, limit_p, limit_abs)),
-                    _ => None, //Err(Error::FromString(format!("Report parse error: lever_diagram {:?}", v))),
+                    _ => None, //Err(error.pass(format!("Report parse error: lever_diagram {:?}", v))),
                 }
             })
             .collect();
-        self.criteria_target = Report::convert(workbook.get("StabilityCriteria").ok_or(Error::FromString(
+        self.criteria_target = Report::convert(workbook.get("StabilityCriteria").ok_or(error.err(
             format!("Report get_target error: no table StabilityCriteria!"),
         ))?);
-        let parameters = Report::convert(workbook.get("Parameters").ok_or(Error::FromString(
+        let parameters = Report::convert(workbook.get("Parameters").ok_or(error.err(
             format!("Report get_target error: no table Parameters!"),
         ))?);
         let mut buf = Vec::new();
@@ -176,8 +178,9 @@ impl Report {
     }
     //
     pub fn get_from_db(&mut self) -> Result<(), Error> {
+        let error = Error::new(&self.dbg, "get_from_db");
         self.criteria_result =
-            self.api_client.get_criterion_data()?.data().into_iter().map(|v| 
+            self.db.get_criterion_data().map_err(|err| error.pass(err))?.data().into_iter().map(|v| 
                 // Если ид=17 - Минимальная метацентрическая высота деления на отсеки
                 // то для отчета берем целевое значение
                 if v.0 != 17 {
@@ -188,44 +191,45 @@ impl Report {
                     (v.0, data)
                 }).collect();
         self.parameters_result =
-            self.api_client.get_parameters_data()?.data().into_iter().map(|v| 
+            self.db.get_parameters_data().map_err(|err| error.pass(err))?.data().into_iter().map(|v| 
                     (v.0, v.1)
         ).collect();
         self.strength_result =
-            self.api_client.get_strength_result()?;
+            self.db.get_strength_result().map_err(|err| error.pass(err))?;
         let area = if self.general.get("Акватория").unwrap().contains("Море") {
             "sea"
         } else {
             "harbor"
         };
         self.strength_limit =
-            self.api_client.get_strength_limit(area)?;
+            self.db.get_strength_limit(area).map_err(|err| error.pass(err))?;
         self.lever_diagram_result =
-            self.api_client.get_lever_diagram()?;
+            self.db.get_lever_diagram().map_err(|err| error.pass(err))?;
         self.ballast_tanks =
-            self.api_client.get_ballast_tanks()?.data();
+            self.db.get_ballast_tanks().map_err(|err| error.pass(err))?.data();
         self.stores_tanks =
-            self.api_client.get_stores_tanks()?.data();
-        self.stores = self.api_client.get_stores()?.data();
+            self.db.get_stores_tanks().map_err(|err| error.pass(err))?.data();
+        self.stores = self.db.get_stores().map_err(|err| error.pass(err))?.data();
         self.bulkheads =
-            self.api_client.get_bulkheads()?.data();
+            self.db.get_bulkheads().map_err(|err| error.pass(err))?.data();
         self.bulk_cargo =
-            self.api_client.get_bulk_cargo()?.data();
+            self.db.get_bulk_cargo().map_err(|err| error.pass(err))?.data();
         self.container =
-            self.api_client.get_container()?.data();
+            self.db.get_container().map_err(|err| error.pass(err))?.data();
         self.general_cargo =
-            self.api_client.get_general_cargo()?.data();
+            self.db.get_general_cargo().map_err(|err| error.pass(err))?.data();
         Ok(())
     }
     //   
     pub fn get_ship_wide(&mut self) -> Result<(), Error> {
-        self.ship_wide = self.api_client.get_ship_wide()
-            .map_err(|e| format!("Parser get_ship_wide error: {e}"))?
+        let error = Error::new(&self.dbg, "get_ship_wide");
+        self.ship_wide = self.db.get_ship_wide()
+            .map_err(|err| error.pass(err))?
             .data()
             .get("MouldedBreadth")
             .copied();
         if self.ship_wide.is_none() || self.ship_wide.unwrap() <= 0. {
-            return Err(Error::FromString(format!(
+            return Err(error.pass(format!(
                 "Parser get_ship_wide error: ship_wide {:?}",
                 self.ship_wide
             )));
@@ -233,7 +237,9 @@ impl Report {
         Ok(())
     }
     //
-    pub fn write(self, path: &str) -> Result<(), Error> {
+    pub fn write(self, dir: &str, name: &str) -> Result<(), Error> {
+        let error = Error::new(&self.dbg, "write");
+        let path = dir.to_owned() + "/" + name + "_" + &self.language + ".md";
         println!("Parser write_to_file begin");
     //    dbg!(&self.parameters_target);
         let mut content = crate::content::displacement::Displacement::new(
@@ -243,15 +249,15 @@ impl Report {
                 &self.displacement_target,
                 &self.parameters_result,
                 self.ship_wide.unwrap(),
-            )?,
+            ).map_err(|err| error.pass(err))?,
             crate::content::displacement::tank::Tank::from(
                 &self.language,
                 &self.ballast_tanks
-            )?,
+            ).map_err(|err| error.pass(err))?,
             crate::content::displacement::tank::Tank::from(
                 &self.language,
                 &self.stores_tanks
-            )?,
+            ).map_err(|err| error.pass(err))?,
             crate::content::displacement::cargo::Cargo::from(
                 &self.language,
                 &self.stores
@@ -259,34 +265,34 @@ impl Report {
             crate::content::displacement::bulkhead::Bulkhead::from(
                 &self.language,
                 &self.bulkheads
-            )?,
+            ).map_err(|err| error.pass(err))?,
             crate::content::displacement::bulk_cargo::BulkCargo::from(
                 &self.language,
                 &self.bulk_cargo
-            )?,
+            ).map_err(|err| error.pass(err))?,
             crate::content::displacement::container::Container::from(
                 &self.language,
                 &self.container
-            )?,
+            ).map_err(|err| error.pass(err))?,
             crate::content::displacement::cargo::Cargo::from(
                 &self.language,
                 &self.general_cargo
-            )?,
+            ).map_err(|err| error.pass(err))?,
         )
-        .to_string()?;
+        .to_string().map_err(|err| error.pass(err))?;
         content += &(crate::content::stability::draught::Draught::from(
             &self.language,
             &self.draught_target,
             &self.parameters_result,
             self.ship_wide.unwrap(),
-        )?.to_string().map_err(|e| format!("Parser write Draught error:{}", e))? + "\n");        
+        ).map_err(|err| error.pass(err))?.to_string().map_err(|err| error.pass(err))?);        
         content += &(Strength::new_named(
             &self.language,
             &self.strength_result,
             &self.strength_target,
             &self.strength_target_max,
             &self.strength_limit,
-        ).to_string().map_err(|e| format!("Parser write Strength error:{}", e))? + "\n"); 
+        ).to_string().map_err(|err| error.pass(err))?);        
         content += &(Stability::new_named(
             &self.language,
             &self.criteria_target,
@@ -296,7 +302,7 @@ impl Report {
             self.ship_wide.unwrap(),
             &self.lever_diagram_target,
             &self.lever_diagram_result,
-        )?.to_string().map_err(|e| format!("Parser write Stability error:{}", e))? + "\n"); 
+        ).map_err(|err| error.pass(err))?.to_string().map_err(|err| error.pass(err))?);        
         std::fs::write(format!("{}", path), content).expect("Unable to write {path}");
         std::thread::sleep(std::time::Duration::from_secs(1));
         println!("Parser write_to_file end");

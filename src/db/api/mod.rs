@@ -23,6 +23,8 @@ pub(crate) use client::*;
 
 pub struct Db {
     dbg: Dbg,
+    ship_id: String,
+    project_id: String,
     language: String,
     api_client: ApiClient,
 }
@@ -30,12 +32,16 @@ pub struct Db {
 impl Db {
     pub fn new(
         parent: &Dbg,
-        api_client: ApiClient,
+        ship_id: String,
+        project_id: String,
         language: Option<String>, // "ru" - russian (default) / "en" - english
+        api_client: ApiClient,        
     ) -> Self {
         let dbg = Dbg::new(parent, "ModelCached");
         Self {
             dbg,
+            ship_id,
+            project_id,
             language: language
                 .map_or("ru", |v| if v.contains("en") { "en" } else { "ru" })
                 .to_owned(),
@@ -50,24 +56,6 @@ impl Db {
             ru
         }
     }
-    //
-    pub fn fetch(&mut self, sql: &str) -> Result<Vec<u8>, Error> {
-        let error = Error::new(&self.dbg, "fetch");
-        let mut request = ApiRequest::new(
-            &api_tools::debug::dbg_id::DbgId("parent".to_owned()),
-            "0.0.0.0:8080",
-            "auth_token",
-            ApiQuery::new(
-                ApiQueryKind::Sql(ApiQuerySql::new(self.database.clone(), sql)),
-                false,
-            ),
-            true,
-            false,
-        );
-        request
-            .fetch(true)
-            .map_err(|e| Error::FromString(format!("Db fetch error: {e}")))
-    }
     /// Чтение данных из БД. Функция читает данные за несколько запросов,
     /// парсит их и проверяет данные на корректность.
     /// Чтение данных из БД. Функция читает данные за несколько запросов,
@@ -76,6 +64,7 @@ impl Db {
         let error = Error::new(&self.dbg, "get_criterion_data");
         CriteriaDataArray::parse(
             &self
+                .api_client
                 .fetch(&format!(
                 "SELECT 
                     head.id AS id, \
@@ -112,6 +101,7 @@ impl Db {
         let error = Error::new(&self.dbg, "get_parameters_data");
         ParameterDataArray::parse(
             &self
+                .api_client
                 .fetch(&format!(
                 "SELECT 
                     head.id as id, \
@@ -144,6 +134,7 @@ impl Db {
         let error = Error::new(&self.dbg, "get_ship_wide");
         DataShipArray::parse(
             &self
+                .api_client
                 .fetch(&format!(
                 "SELECT key, value FROM ship_parameters WHERE key='MouldedBreadth' AND ship_id={} AND project_id IS NOT DISTINCT FROM {}",
                 self.ship_id,
@@ -160,7 +151,8 @@ impl Db {
         let error = Error::new(&self.dbg, "get_strength_result");
         let bounds = ComputedFrameDataArray::parse(
             &self
-            .fetch(&format!(
+            .api_client
+                .fetch(&format!(
                 "SELECT index, start_x, end_x FROM computed_frame_space WHERE ship_id={} AND project_id IS NOT DISTINCT FROM {} ORDER BY index;",
                 self.ship_id,
                 self.project_id,
@@ -170,7 +162,8 @@ impl Db {
     .map_err(|e| Error::FromString(format!("api_client get_strength_result bounds error: {e}")))?;
         let strength_result = StrengthResultDataArray::parse(
             &self
-            .fetch(&format!(
+            .api_client
+                .fetch(&format!(
                 "SELECT value_shear_force as sf, value_bending_moment as bm FROM result_strength WHERE ship_id={} AND project_id IS NOT DISTINCT FROM {} ORDER BY index;",
                 self.ship_id,
                 self.project_id,
@@ -193,7 +186,8 @@ impl Db {
         let error = Error::new(&self.dbg, "get_strength_limit");
         Ok(StrengthLimitDataArray::parse(
             &self
-            .fetch(&format!(
+            .api_client
+                .fetch(&format!(
                 "SELECT frame_x, value, limit_type::TEXT, limit_area::TEXT, force_type::TEXT FROM strength_force_limit WHERE ship_id={} AND project_id IS NOT DISTINCT FROM {};",
                 self.ship_id,
                 self.project_id,
@@ -207,6 +201,7 @@ impl Db {
         let error = Error::new(&self.dbg, "get_lever_diagram");
         Ok(StabilityDiagramDataArray::parse(
             &self
+                .api_client
                 .fetch(&format!(
                     "SELECT angle, value_dso FROM stability_diagram WHERE ship_id={} AND project_id IS NOT DISTINCT FROM {};",
                     self.ship_id,
@@ -224,6 +219,7 @@ impl Db {
         let error = Error::new(&self.dbg, "get_ballast_tanks");
         TankDataArray::parse(
             &self
+                .api_client
                 .fetch(&format!(
                     "SELECT 
                         {} as name, \
@@ -250,7 +246,8 @@ impl Db {
     pub fn get_stores_tanks(&mut self) -> Result<TankDataArray, Error> {
         let error = Error::new(&self.dbg, "get_stores_tanks");
         TankDataArray::parse(
-            &self.fetch(&format!(
+            &self.api_client
+                .fetch(&format!(
                     "SELECT 
                         {} as name, \
                         mass, \
@@ -275,6 +272,7 @@ impl Db {
         let error = Error::new(&self.dbg, "get_stores");
         CargoDataArray::parse(
             &self
+                .api_client
                 .fetch(&format!(
                     "SELECT 
                         name as name, \
@@ -297,6 +295,7 @@ impl Db {
         let error = Error::new(&self.dbg, "get_bulkheads");
         BulkheadDataArray::parse(
             &self
+                .api_client
                 .fetch(&format!(
                     "SELECT 
                         b.{} as name, \
@@ -325,6 +324,7 @@ impl Db {
         let error = Error::new(&self.dbg, "get_bulk_cargo");
         BulkCargoDataArray::parse(
             &self
+                .api_client
                 .fetch(&format!(
                     "SELECT 
                         {} as name, \
@@ -350,6 +350,7 @@ impl Db {
         let error = Error::new(&self.dbg, "get_container");
         ContainerDataArray::parse(
             &self
+                .api_client
                 .fetch(&format!(
                     "SELECT 
                         c.owner_code as owner_code, \
@@ -379,6 +380,7 @@ impl Db {
         let error = Error::new(&self.dbg, "get_container");
         CargoDataArray::parse(
             &self
+                .api_client
                 .fetch(&format!(
                     "SELECT 
                         name as name, \

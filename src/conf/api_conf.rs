@@ -13,9 +13,9 @@ pub struct ApiAddress {
 #[derive(Debug, Clone, Deserialize, PartialEq)]
 pub struct Params {
     #[serde(alias = "ship-id")]
-    pub ship_id: i32,
+    pub ship_id: String,
     #[serde(alias = "project-id")]
-    pub project_id: Option<i32>,
+    pub project_id: Option<String>,
 }
 ///
 /// Данные для доступа к БД

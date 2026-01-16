@@ -6,11 +6,11 @@ api:
         port: "8081"
         database: "sss-computing"
     params:
-        ship_id: 2
+        ship_id: "2"
         project_id: NULL
 #
 # API params
 data:
     dir: "src/bin"
-    name: "SSS_Sofia_test3.xlsx"
+    name: "SSS_Sofia_test3"
 
