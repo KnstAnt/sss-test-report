@@ -1,6 +1,6 @@
 //! Интерфес для парсинга json от  АПИ сервера
 
-use crate::error::Error;
+use sal_core::error::Error;
 
 
 /// Интерфес для парсинга json от  АПИ сервера,  
@@ -10,6 +10,7 @@ pub trait IFromJson {
     fn error(&self) -> Option<&String>;
     /// Парсинг данных из json строки
     fn parse<'a>(src: &'a [u8]) -> Result<Self, Error> where Self: Sized + serde::Deserialize<'a> {
+        let error = Error::new(&self.dbg, "get_general_cargo");
         let res: Self = serde_json::from_slice(src)?;
         if let Some(error) = res.error() {
             if !error.is_empty() {

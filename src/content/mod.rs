@@ -1,4 +1,4 @@
-use crate::error::Error;
+use sal_core::error::Error;
 
 pub mod misc;
 pub mod strength;

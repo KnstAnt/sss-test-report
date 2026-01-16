@@ -6,7 +6,7 @@ use container::Container;
 use summary::Summary;
 use tank::Tank;
 
-use crate::error::Error;
+use sal_core::{dbg::Dbg, error::Error};
 use super::Content;
 
 pub mod tank;

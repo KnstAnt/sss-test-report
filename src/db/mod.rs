@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use serde_parser::IFromJson;
 
-pub mod api_server;
+pub mod api;
 mod data;
 mod serde_parser;
 mod computed_frame;

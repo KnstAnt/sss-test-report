@@ -1,9 +1,8 @@
 //! Класс-коллекция таблиц. Проверяет данные и выполняет их запись
 use crate::content::stability::Stability;
 use crate::content::strength::Strength;
-//use crate::content::general::General;
-//use crate::content::list_of_calculations::ListOfCalculations;
 use crate::content::Content;
+use crate::db::api::Db;
 use crate::db::bulk_cargo::BulkCargoData;
 use crate::db::bulkhead::BulkheadData;
 use crate::db::cargo::CargoData;
@@ -11,17 +10,15 @@ use crate::db::container::ContainerData;
 use crate::db::criterion::CriteriaData;
 use crate::db::parameters::ParameterData;
 use crate::db::tank::TankData;
-use crate::error::Error;
-//use crate::formatter::Page;
-use crate::ApiServer;
 use calamine::Range;
 use calamine::{open_workbook, Data, Reader, Xlsx};
+use sal_core::{dbg::Dbg, error::Error};
 use std::collections::HashMap;
 //
 pub struct Report {
+    dbg: Dbg,
     language: String,
-    ship_id: usize,
-    api_server: ApiServer,
+    db: Db,
     general: HashMap<String, String>,
     ship_wide: Option<f64>,
     strength_target: Vec<(f64, i32, f64, f64, f64)>, //x, fr, SF, BM, limit_%
@@ -47,11 +44,11 @@ pub struct Report {
 //
 impl Report {
     //
-    pub fn new(language: Option<String>, ship_id: usize, api_server: ApiServer) -> Self {
+    pub fn new(parent: &Dbg, language: Option<String>, db: Db) -> Self {
         Self {
+            dbg: Dbg::new(parent, "Report"),
             language: language.unwrap_or("ru".to_owned()),
-            ship_id,
-            api_server,
+            db,
             general: HashMap::new(),
             ship_wide: None,
             strength_target: Vec::new(),
@@ -180,7 +177,7 @@ impl Report {
     //
     pub fn get_from_db(&mut self) -> Result<(), Error> {
         self.criteria_result =
-            self.api_server.get_criterion_data()?.data().into_iter().map(|v| 
+            self.api_client.get_criterion_data()?.data().into_iter().map(|v| 
                 // Если ид=17 - Минимальная метацентрическая высота деления на отсеки
                 // то для отчета берем целевое значение
                 if v.0 != 17 {
@@ -191,38 +188,38 @@ impl Report {
                     (v.0, data)
                 }).collect();
         self.parameters_result =
-            self.api_server.get_parameters_data()?.data().into_iter().map(|v| 
+            self.api_client.get_parameters_data()?.data().into_iter().map(|v| 
                     (v.0, v.1)
         ).collect();
         self.strength_result =
-            self.api_server.get_strength_result()?;
+            self.api_client.get_strength_result()?;
         let area = if self.general.get("Акватория").unwrap().contains("Море") {
             "sea"
         } else {
             "harbor"
         };
         self.strength_limit =
-            self.api_server.get_strength_limit(area)?;
+            self.api_client.get_strength_limit(area)?;
         self.lever_diagram_result =
-            self.api_server.get_lever_diagram()?;
+            self.api_client.get_lever_diagram()?;
         self.ballast_tanks =
-            self.api_server.get_ballast_tanks()?.data();
+            self.api_client.get_ballast_tanks()?.data();
         self.stores_tanks =
-            self.api_server.get_stores_tanks()?.data();
-        self.stores = self.api_server.get_stores()?.data();
+            self.api_client.get_stores_tanks()?.data();
+        self.stores = self.api_client.get_stores()?.data();
         self.bulkheads =
-            self.api_server.get_bulkheads()?.data();
+            self.api_client.get_bulkheads()?.data();
         self.bulk_cargo =
-            self.api_server.get_bulk_cargo()?.data();
+            self.api_client.get_bulk_cargo()?.data();
         self.container =
-            self.api_server.get_container()?.data();
+            self.api_client.get_container()?.data();
         self.general_cargo =
-            self.api_server.get_general_cargo()?.data();
+            self.api_client.get_general_cargo()?.data();
         Ok(())
     }
     //   
     pub fn get_ship_wide(&mut self) -> Result<(), Error> {
-        self.ship_wide = self.api_server.get_ship_wide()
+        self.ship_wide = self.api_client.get_ship_wide()
             .map_err(|e| format!("Parser get_ship_wide error: {e}"))?
             .data()
             .get("MouldedBreadth")

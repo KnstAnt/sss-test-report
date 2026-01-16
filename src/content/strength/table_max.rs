@@ -1,4 +1,5 @@
 pub struct TableMax {
+    dbg: Dbg,
     header: Vec<String>,
     // name, min, doc, calc, max, limit_%
     values: Vec<(String, f64, f64, f64, f64, f64)>,

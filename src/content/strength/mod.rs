@@ -1,7 +1,7 @@
 use template::Template;
 use template_max::TemplateMax;
+use sal_core::{dbg::Dbg, error::Error};
 
-use crate::error::Error;
 
 use super::Content;
 

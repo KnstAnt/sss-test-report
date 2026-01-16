@@ -1,33 +1,43 @@
-use db::api_server::ApiServer;
+use debugging::session::debug_session::{DebugSession, LogLevel};
 use log::info;
 use parser::Report;
+use sal_core::dbg::Dbg;
 use std::io;
 use std::io::*;
+use crate::conf::conf::Conf;
+use crate::db::api::{ApiClient, Db};
 
 mod content;
 mod db;
-mod error;
+mod conf;
 mod formatter;
 mod parser;
 
 fn main() {
-    std::env::set_var("RUST_LOG", "info");
-    env_logger::init();
-    info!("starting up");
-    let ship_id = 2;
-    let path = "src/bin/SSS_Sofia_test3.xlsx";
-    let language = Some("ru".to_owned());
+    DebugSession::new()
+        .filter(LogLevel::Trace)
+        .module("api_tools", LogLevel::Error)
+        .init();
+    let dbg = Dbg::own("main");
+    info!("starting up");    
+    let conf = "./config.yaml";
+    let conf = Conf::new(&dbg, conf);
+    let language = Some("ru".to_owned());   
     let mut report = Report::new(
+        &dbg,
         language.clone(),
-        ship_id,
-        ApiServer::new(
-            "sss-computing".to_owned(),
-            2,
-            None,
-            language,
-        )
+        Db::new(
+        &dbg,
+        ApiClient::new(
+            &dbg,
+            conf.api.address.database.clone(),
+            conf.api.address.host.clone(),
+            conf.api.address.port.clone(),
+        ),
+        language,
+    ),
     );
-    if let Err(error) = report.get_target(path) {
+    if let Err(error) = report.get_target(&(conf.data.dir.to_owned() + "/" + &conf.data.name) ) {
         let mut stdout = io::stdout().lock();
         stdout.write_all(error.to_string().as_bytes()).unwrap();
         //       println!("{}", error.to_string());
@@ -53,16 +63,20 @@ fn main() {
     }
     let language = Some("en".to_owned());
     let mut report = Report::new(
+        &dbg,
         language.clone(),
-        ship_id,
-        ApiServer::new(
-            "sss-computing".to_owned(),
-            2,
-            None,
+        Db::new(
+            &dbg,
+            ApiClient::new(
+                &dbg,
+                conf.api.address.database.clone(),
+                conf.api.address.host.clone(),
+                conf.api.address.port.clone(),
+            ),
             language,
         )
     );
-    if let Err(error) = report.get_target(path) {
+    if let Err(error) = report.get_target(&(conf.data.dir.to_owned() + "/" + &conf.data.name)) {
         let mut stdout = io::stdout().lock();
         stdout.write_all(error.to_string().as_bytes()).unwrap();
         //       println!("{}", error.to_string());
