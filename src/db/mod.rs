@@ -5,7 +5,6 @@ use serde_parser::IFromJson;
 pub mod api;
 mod data;
 mod serde_parser;
-mod computed_frame;
 mod strength_result;
 mod strength_limit;
 mod stability_diagram;

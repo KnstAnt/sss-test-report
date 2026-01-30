@@ -67,26 +67,22 @@ impl Db {
                 .api_client
                 .fetch(&format!(
                 "SELECT 
-                    head.id AS id, \
-                    head.{} as name, \
-                    unit.{} as unit, \
-                    values.actual_value AS result, \
-                    values.limit_value AS target, \
-                    values.state as state
+                    id AS id, \
+                    title as name, \
+                    unit as unit, \
+                    result AS result, \
+                    target AS target, \
+                    state as state
                 FROM 
-                    criterion as head
-                LEFT JOIN
-                    unit as unit on head.unit_id=unit.id
-                RIGHT JOIN
-                    criterion_values AS values ON head.id=values.criterion_id
+                    criterion_view
                 WHERE 
-                    values.ship_id={} AND 
-                    head.category_id = 1 AND
-                    values.project_id IS NOT DISTINCT FROM {}
+                    language={} AND
+                    category_id = 1 AND
+                    ship_id={} AND 
+                    project_id IS NOT DISTINCT FROM {}
                 ORDER BY
-                    head.id;",
-                    self.language("title_rus", "title_eng"),
-                    self.language("symbol_rus", "symbol_eng"),
+                    id;",
+                    self.language,
                     self.ship_id, 
                     self.project_id,
                 ))
@@ -104,22 +100,19 @@ impl Db {
                 .api_client
                 .fetch(&format!(
                 "SELECT 
-                    head.id as id, \
-                    head.{} as name, \
-                    data.result as result, \
-                    unit.{} as unit
+                    id as id, \
+                    title as name, \
+                    result as result, \
+                    unit as unit
                 FROM 
-                    parameter_head as head
-                LEFT JOIN
-                    unit as unit on head.unit_id=unit.id                    
-                RIGHT JOIN                
-                    parameter_data as data on data.parameter_id=head.id
+                    parameter_view
                 WHERE 
-                    ship_id={} AND project_id IS NOT DISTINCT FROM {}
+                    language={} AND
+                    ship_id={} AND 
+                    project_id IS NOT DISTINCT FROM {}
                 ORDER BY
-                    head.id;",
-                    self.language("title_rus", "title_eng"),
-                    self.language("symbol_rus", "symbol_eng"),
+                    id;",
+                    self.language,
                     self.ship_id, 
                     self.project_id,
                 ))
@@ -136,7 +129,7 @@ impl Db {
             &self
                 .api_client
                 .fetch(&format!(
-                "SELECT key, value FROM ship_parameters WHERE key='MouldedBreadth' AND ship_id={} AND project_id IS NOT DISTINCT FROM {}",
+                "SELECT key, value FROM \"ship/ship_general_characteristics\" WHERE key='MouldedBreadth' AND ship_id={} AND project_id IS NOT DISTINCT FROM {}",
                 self.ship_id,
                 self.project_id,
             ))
@@ -147,54 +140,42 @@ impl Db {
         .map_err(|e| Error::FromString(format!("api_client get_ship_wide error: {e}")))
     }
     //
-    pub fn get_strength_result(&mut self) -> Result<Vec<(f64, f64, f64)>, Error> {
-        let error = Error::new(&self.dbg, "get_strength_result");
-        let bounds = ComputedFrameDataArray::parse(
-            &self
-            .api_client
-                .fetch(&format!(
-                "SELECT index, start_x, end_x FROM computed_frame_space WHERE ship_id={} AND project_id IS NOT DISTINCT FROM {} ORDER BY index;",
-                self.ship_id,
-                self.project_id,
-            ))
-            .map_err(|e| Error::FromString(format!("api_client get_strength_result bounds error: {e}")))?,
-    )
-    .map_err(|e| Error::FromString(format!("api_client get_strength_result bounds error: {e}")))?;
+    pub fn get_strength_result(&mut self) -> Result<StrengthResultDataArray, Error> {
         let strength_result = StrengthResultDataArray::parse(
             &self
-            .api_client
                 .fetch(&format!(
-                "SELECT value_shear_force as sf, value_bending_moment as bm FROM result_strength WHERE ship_id={} AND project_id IS NOT DISTINCT FROM {} ORDER BY index;",
-                self.ship_id,
-                self.project_id,
+                    "SELECT 
+                        frame_x as x, \
+                        value_shear_force as sf, \
+                        value_bending_moment as bm, \
+                        limit_low_shear_force as sf_limit_low, \
+                        limit_high_shear_force as sf_limit_high, \
+                        percent_shear_force as sf_percent, \
+                        status_shear_force as sf_status, \
+                        limit_low_bending_moment as bm_limit_low, \
+                        limit_high_bending_moment as bm_limit_high, \
+                        percent_bending_moment as bm_percent, \
+                        status_bending_moment as bm_status
+                    FROM
+                        result_strength_force_and_moment
+                    WHERE 
+                        ship_id={} AND
+                        project_id IS NOT DISTINCT FROM {}
+                    ORDER BY x;",
+                    self.ship_id, self.project_id,
+                ))
+                .map_err(|e| {
+                    Error::FromString(format!(
+                        "api_server get_strength_result strength_result error: {e}"
+                    ))
+                })?,
+        )
+        .map_err(|e| {
+            Error::FromString(format!(
+                "api_server get_strength_result strength_result error: {e}"
             ))
-            .map_err(|e| Error::FromString(format!("api_client get_strength_result strength_result error: {e}")))?,
-    )
-    .map_err(|e| Error::FromString(format!("api_client get_strength_result strength_result error: {e}")))?;
-        Ok(bounds
-            .data()
-            .iter()
-            .zip(strength_result.data().iter())
-            .map(|(x, (sf, bm))| (*x, *sf, *bm))
-            .collect())
-    }
-    // (frame_x, bm_min, bm_max, sf_min, sf_max)
-    pub fn get_strength_limit(
-        &mut self,
-        area: &str,
-    ) -> Result<Vec<(f64, f64, f64, f64, f64)>, Error> {
-        let error = Error::new(&self.dbg, "get_strength_limit");
-        Ok(StrengthLimitDataArray::parse(
-            &self
-            .api_client
-                .fetch(&format!(
-                "SELECT frame_x, value, limit_type::TEXT, limit_area::TEXT, force_type::TEXT FROM strength_force_limit WHERE ship_id={} AND project_id IS NOT DISTINCT FROM {};",
-                self.ship_id,
-                self.project_id,
-            ))
-            .map_err(|e| Error::FromString(format!("api_client get_strength_limit error: {e}")))?,
-    )
-    .map_err(|e| Error::FromString(format!("api_client get_strength_limit error: {e}")))?.data(area))
+        })?;
+        Ok(strength_result)
     }
     //
     pub fn get_lever_diagram(&mut self) -> Result<Vec<(f64, f64)>, Error> {
