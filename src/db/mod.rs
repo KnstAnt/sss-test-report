@@ -5,7 +5,7 @@ use serde_parser::IFromJson;
 pub mod api;
 mod data;
 mod serde_parser;
-mod strength_result;
+pub mod strength_result;
 mod stability_diagram;
 pub mod tank;
 pub mod cargo;

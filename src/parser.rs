@@ -1,59 +1,63 @@
 //! Класс-коллекция таблиц. Проверяет данные и выполняет их запись
 use crate::content::stability::Stability;
 use crate::content::strength::Strength;
+//use crate::content::general::General;
+//use crate::content::list_of_calculations::ListOfCalculations;
 use crate::content::Content;
-use crate::db::api::Db;
-use crate::db::bulk_cargo::BulkCargoData;
-use crate::db::bulkhead::BulkheadData;
-use crate::db::cargo::CargoData;
-use crate::db::container::ContainerData;
-use crate::db::criterion::CriteriaData;
+use crate::db::api::{ApiClient, Db};
 use crate::db::parameters::ParameterData;
-use crate::db::tank::TankData;
-use calamine::Range;
-use calamine::{open_workbook, Data, Reader, Xlsx};
-use sal_core::{dbg::Dbg, error::Error};
+use crate::db::strength_result::StrengthResultData;
+//use crate::formatter::Page;
+use calamine::{Range, open_workbook_auto};
+use calamine::{Data, Reader};
+use sal_core::dbg::Dbg;
+use sal_core::error::Error;
 use std::collections::HashMap;
 //
 pub struct Report {
     dbg: Dbg,
-    language: String,
     db: Db,
+    language: String,
     general: HashMap<String, String>,
     ship_wide: Option<f64>,
-    strength_result: Vec<StrengthResultData>,    
     strength_target: Vec<(f64, i32, f64, f64, f64)>, //x, fr, SF, BM, limit_%
     strength_target_max: Vec<(String, f64, f64, f64)>, // name, x, value, limit_%
+    strength_result: Vec<StrengthResultData>,           //x, SF, BM
     lever_diagram_result: Vec<(f64, f64)>,           //angle, level
     lever_diagram_target: Vec<(f64, f64, f64, f64)>, //angle, level, limit_%, limit_abs
     criteria_target: Vec<Vec<String>>,
     displacement_target: Vec<Vec<String>>,
     draught_target: Vec<Vec<String>>,
     parameters_target: Vec<Vec<String>>,
-    criteria_result: HashMap<i32, CriteriaData>, // criterion_id, value
+    criteria_result: HashMap<i32, f64>, // criterion_id, value
     parameters_result: HashMap<i32, ParameterData>,// parameter_id, value
-    ballast_tanks: Vec<TankData>,
-    stores_tanks: Vec<TankData>,
-    stores: Vec<CargoData>,
-    bulkheads: Vec<BulkheadData>,
-    bulk_cargo: Vec<BulkCargoData>,
-    container: Vec<ContainerData>,
-    general_cargo: Vec<CargoData>,
 }
 //
 impl Report {
     //
-    pub fn new(parent: &Dbg, language: Option<String>, db: Db) -> Self {
+    pub fn new(
+        parent: &Dbg, 
+        ship_id: String,
+        project_id: String,
+        language: String, 
+        api_client: ApiClient,
+    ) -> Self {
+        let dbg = Dbg::new(parent, "Report");
         Self {
-            dbg: Dbg::new(parent, "Report"),
-            language: language.unwrap_or("ru".to_owned()),
-            db,
+            dbg: dbg.clone(),
+            db: Db::new(
+                &dbg,
+                ship_id,
+                project_id,
+                language.clone(),
+                api_client,
+            ),
+            language,
             general: HashMap::new(),
             ship_wide: None,
             strength_target: Vec::new(),
             strength_target_max: Vec::new(),
             strength_result: Vec::new(),
-            strength_limit: Vec::new(),
             lever_diagram_result: Vec::new(),
             lever_diagram_target: Vec::new(),
             criteria_target: Vec::new(),
@@ -62,28 +66,22 @@ impl Report {
             parameters_target: Vec::new(),
             criteria_result: HashMap::new(),
             parameters_result: HashMap::new(),
-            ballast_tanks: Vec::new(),
-            stores_tanks: Vec::new(),
-            stores: Vec::new(),
-            bulkheads: Vec::new(),
-            bulk_cargo: Vec::new(),
-            container: Vec::new(),
-            general_cargo: Vec::new(),
         }
     }
     //
-    pub fn get_target(&mut self, dir: &str, name: &str) -> Result<(), Error> {
+    pub fn get_target(&mut self, path: &str, name: &str) -> Result<(), Error> {
         let error = Error::new(&self.dbg, "get_target");
-        let path = dir.to_owned() + "/" + name + ".xlsx";
-        let mut workbook: Xlsx<_> = open_workbook(path).expect("Cannot open file");
-        let workbook: HashMap<String, Range<Data>> = workbook
+        let path = (path.to_owned() + "/" + name).replace("//", "/");
+        let workbook: HashMap<String, Range<Data>> = open_workbook_auto(path.clone())
+            .map_err(|err| error.pass_with(format!("open_workbook error!, {path}"), err.to_string()))?
             .worksheets()
             .into_iter()
             .filter(|(_, range)| range.used_cells().count() > 0)
             .collect();
-        self.general = Report::convert(workbook.get("General").ok_or(error.err(
-            format!("Report get_target error: no table General!"),
-        ))?)
+        self.general = Report::convert(
+            workbook.get("General")
+                .ok_or(error.err(format!("Report get_target error: no table General!")
+            ))?)
         .iter()
         .map(|v| (v[0].clone(), v[1].clone()))
         .collect();
@@ -101,7 +99,7 @@ impl Report {
                     v[4].parse::<f64>(),
                 ) {
                     (Ok(x), Ok(fr), Ok(sf), Ok(bm), Ok(limit_p)) => Some((x, fr, sf, bm, limit_p)),
-                    _ => None, //Err(error.pass(format!("Report parse error: strength {:?}", v))),
+                    _ => None, //Err(Error::FromString(format!("Report parse error: strength {:?}", v))),
                 }
             })
             .collect();
@@ -116,7 +114,7 @@ impl Report {
                         v[3].parse::<f64>(),
                     ) {
                         (name, Ok(x), Ok(value), Ok(limit_p)) => Some((name, x, value, limit_p)),
-                        _ => None, //Err(error.pass(format!("Report parse error: strength_max {:?}", v))),
+                        _ => None, //Err(Error::FromString(format!("Report parse error: strength_max {:?}", v))),
                     }
                 })
                 .collect()
@@ -136,7 +134,7 @@ impl Report {
                     v[3].parse::<f64>(),
                 ) {
                     (Ok(a), Ok(l), Ok(limit_p), Ok(limit_abs)) => Some((a, l, limit_p, limit_abs)),
-                    _ => None, //Err(error.pass(format!("Report parse error: lever_diagram {:?}", v))),
+                    _ => None, //Err(Error::FromString(format!("Report parse error: lever_diagram {:?}", v))),
                 }
             })
             .collect();
@@ -179,56 +177,35 @@ impl Report {
     pub fn get_from_db(&mut self) -> Result<(), Error> {
         let error = Error::new(&self.dbg, "get_from_db");
         self.criteria_result =
-            self.db.get_criterion_data().map_err(|err| error.pass(err))?.data().into_iter().map(|v| 
+            self.db.get_criterion_data()?.data().into_iter()
+                .filter(|(_, v)| v.result.is_some() && v.target.is_some())
+                .map(|(i, v)| 
                 // Если ид=17 - Минимальная метацентрическая высота деления на отсеки
                 // то для отчета берем целевое значение
-                if v.0 != 17 {
-                    (v.0, v.1)
+                if i != 17 {
+                    (i, v.target.unwrap())
                 } else {
-                    let mut data = v.1;
-                    data.result = data.target;
-                    (v.0, data)
+                    (i, v.result.unwrap())
                 }).collect();
         self.parameters_result =
-            self.db.get_parameters_data().map_err(|err| error.pass(err))?.data().into_iter().map(|v| 
-                    (v.0, v.1)
-        ).collect();
-        self.strength_result =
-            self.db.get_strength_result().map_err(|err| error.pass(err))?;
-        let area = if self.general.get("Акватория").unwrap().contains("Море") {
-            "sea"
-        } else {
-            "harbor"
-        };
-        self.strength_limit =
-            self.db.get_strength_limit(area).map_err(|err| error.pass(err))?;
+            self.db.get_parameters_data()?.data().into_iter()
+                .map(|(i, v)| (i, v))
+                .collect();
+        self.strength_result = self.db.get_strength_result().map_err(|err| error.pass(err))?.data();
         self.lever_diagram_result =
-            self.db.get_lever_diagram().map_err(|err| error.pass(err))?;
-        self.ballast_tanks =
-            self.db.get_ballast_tanks().map_err(|err| error.pass(err))?.data();
-        self.stores_tanks =
-            self.db.get_stores_tanks().map_err(|err| error.pass(err))?.data();
-        self.stores = self.db.get_stores().map_err(|err| error.pass(err))?.data();
-        self.bulkheads =
-            self.db.get_bulkheads().map_err(|err| error.pass(err))?.data();
-        self.bulk_cargo =
-            self.db.get_bulk_cargo().map_err(|err| error.pass(err))?.data();
-        self.container =
-            self.db.get_container().map_err(|err| error.pass(err))?.data();
-        self.general_cargo =
-            self.db.get_general_cargo().map_err(|err| error.pass(err))?.data();
+            self.db.get_lever_diagram()?;
         Ok(())
     }
-    //   
+    //
     pub fn get_ship_wide(&mut self) -> Result<(), Error> {
         let error = Error::new(&self.dbg, "get_ship_wide");
         self.ship_wide = self.db.get_ship_wide()
-            .map_err(|err| error.pass(err))?
+            .map_err(|e| format!("Parser get_ship_wide error: {e}"))?
             .data()
             .get("MouldedBreadth")
             .copied();
         if self.ship_wide.is_none() || self.ship_wide.unwrap() <= 0. {
-            return Err(error.pass(format!(
+            return Err(error.err(format!(
                 "Parser get_ship_wide error: ship_wide {:?}",
                 self.ship_wide
             )));
@@ -236,63 +213,34 @@ impl Report {
         Ok(())
     }
     //
-    pub fn write(self, dir: &str, name: &str) -> Result<(), Error> {
+    pub fn write(self, path: &str, name: &str) -> Result<(), Error> {
         let error = Error::new(&self.dbg, "write");
-        let path = dir.to_owned() + "/" + name + "_" + &self.language + ".md";
         println!("Parser write_to_file begin");
     //    dbg!(&self.parameters_target);
-        let mut content = crate::content::displacement::Displacement::new(
-            &self.language,            
-            crate::content::displacement::summary::Summary::from(
-                &self.language,
-                &self.displacement_target,
-                &self.parameters_result,
-                self.ship_wide.unwrap(),
-            ).map_err(|err| error.pass(err))?,
-            crate::content::displacement::tank::Tank::from(
-                &self.language,
-                &self.ballast_tanks
-            ).map_err(|err| error.pass(err))?,
-            crate::content::displacement::tank::Tank::from(
-                &self.language,
-                &self.stores_tanks
-            ).map_err(|err| error.pass(err))?,
-            crate::content::displacement::cargo::Cargo::from(
-                &self.language,
-                &self.stores
-            )?,
-            crate::content::displacement::bulkhead::Bulkhead::from(
-                &self.language,
-                &self.bulkheads
-            ).map_err(|err| error.pass(err))?,
-            crate::content::displacement::bulk_cargo::BulkCargo::from(
-                &self.language,
-                &self.bulk_cargo
-            ).map_err(|err| error.pass(err))?,
-            crate::content::displacement::container::Container::from(
-                &self.language,
-                &self.container
-            ).map_err(|err| error.pass(err))?,
-            crate::content::displacement::cargo::Cargo::from(
-                &self.language,
-                &self.general_cargo
-            ).map_err(|err| error.pass(err))?,
-        )
-        .to_string().map_err(|err| error.pass(err))?;
+        let mut content = crate::content::displacement::Displacement::from(
+            &self.dbg,
+            &self.language,           
+            &self.displacement_target,
+            &self.parameters_result,
+            self.ship_wide.unwrap(),
+        )?.to_string().map_err(|e| format!("Parser write Displacement error:{}", e))? + "\n";
         content += &(crate::content::stability::draught::Draught::from(
+            &self.dbg,
             &self.language,
             &self.draught_target,
             &self.parameters_result,
             self.ship_wide.unwrap(),
-        ).map_err(|err| error.pass(err))?.to_string().map_err(|err| error.pass(err))?);        
+        )?.to_string().map_err(|e| format!("Parser write Draught error:{}", e))? + "\n");        
         content += &(Strength::new_named(
-            &self.language,
-            &self.strength_result,
-            &self.strength_target,
-            &self.strength_target_max,
-            &self.strength_limit,
-        ).to_string().map_err(|err| error.pass(err))?);        
+                &self.dbg,
+                &self.language,
+                &self.strength_result,
+                &self.strength_target,
+                &self.strength_target_max,
+                &self.strength_limit,
+            ).to_string().map_err(|e| format!("Parser write Strength error:{}", e))? + "\n"); 
         content += &(Stability::new_named(
+            &self.dbg,
             &self.language,
             &self.criteria_target,
             &self.criteria_result,
@@ -301,7 +249,8 @@ impl Report {
             self.ship_wide.unwrap(),
             &self.lever_diagram_target,
             &self.lever_diagram_result,
-        ).map_err(|err| error.pass(err))?.to_string().map_err(|err| error.pass(err))?);        
+        )?.to_string().map_err(|e| format!("Parser write Stability error:{}", e))? + "\n"); 
+        let path = (path.to_owned() + "/" + name).replace("//", "/");
         std::fs::write(format!("{}", path), content).expect("Unable to write {path}");
         std::thread::sleep(std::time::Duration::from_secs(1));
         println!("Parser write_to_file end");

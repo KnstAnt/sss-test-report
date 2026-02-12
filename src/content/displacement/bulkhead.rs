@@ -1,7 +1,7 @@
 use crate::{
-    content::Content, db::bulkhead::BulkheadData, error::Error
+    content::Content, db::bulkhead::BulkheadData
 };
-
+use sal_core::{dbg::Dbg, error::Error};
 use super::table::Table;
 
 pub struct Bulkhead {

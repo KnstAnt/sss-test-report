@@ -1,4 +1,5 @@
 use crate::content::misc::{Curve, ICurve};
+use sal_core::{dbg::Dbg, error::Error};
 
 pub struct LeverDiagram {
     dbg: Dbg,
@@ -12,12 +13,15 @@ pub struct LeverDiagram {
 impl LeverDiagram {
     //
     pub fn new(
+        parent: &Dbg,
         title: &str,
         header: &[&str],
         target: &[(f64, f64, f64, f64)],
         result: &[(f64, f64)],
     ) -> Self {
+        let dbg = Dbg::new(parent, "LeverDiagram");
         Self {
+            dbg,
             title: title.to_owned(),
             header: header.iter().map(|s| s.to_string()).collect(),
             target: Vec::from(target),
@@ -25,7 +29,12 @@ impl LeverDiagram {
         }
     }
     //
-    pub fn from(language: &String, target: &[(f64, f64, f64, f64)], result: &[(f64, f64)]) -> Self {
+    pub fn from(
+        parent: &Dbg, 
+        language: &String, 
+        target: &[(f64, f64, f64, f64)], 
+        result: &[(f64, f64)]
+    ) -> Self {
         let (title, header) = if language.contains("en") {
             (
                 "Stability curve",
@@ -54,7 +63,7 @@ impl LeverDiagram {
             )
         }
         .to_owned();
-        Self::new(title, &header, target, result)
+        Self::new(parent, title, &header, target, result)
     }
     //
     pub fn to_string(self) -> Result<String, crate::error::Error> {

@@ -1,12 +1,9 @@
 use std::collections::HashMap;
-
 use criterion::Criterion;
 use lever_diagram::LeverDiagram;
 use parameters::Parameters;
 use sal_core::{dbg::Dbg, error::Error};
-
 use crate::{db::{criterion::CriteriaData, parameters::ParameterData}};
-
 use super::Content;
 
 pub mod unit;

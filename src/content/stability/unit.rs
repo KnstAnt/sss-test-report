@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 
-use crate::{db::{criterion::CriteriaData, parameters::ParameterData}, error::Error};
+use sal_core::{dbg::Dbg, error::Error};
+
+use crate::{db::{criterion::CriteriaData, parameters::ParameterData}};
 
 //
 #[derive(Debug, Clone)]
@@ -18,6 +20,7 @@ pub struct TableUnit {
 impl TableUnit {
     //
     pub fn new(
+        parent: &Dbg,
         id: i32,
         name: String,
         unit: String,
@@ -26,7 +29,9 @@ impl TableUnit {
         limit_percent: Option<String>,
         limit_abs: Option<String>,
     ) -> Self {
+        let dbg = Dbg::new(parent, "TableUnit");
         Self {
+            dbg,
             id,
             name,
             unit,
@@ -37,7 +42,12 @@ impl TableUnit {
         }
     }
     //
-    pub fn from_parameters(data: &[String], result: &HashMap<i32, ParameterData>,) -> Result<Self, Error> {
+    pub fn from_parameters(
+        parent: &Dbg, 
+        data: &[String], 
+        result: &HashMap<i32, 
+        ParameterData>
+    ) -> Result<Self, Error> {
         let id = data
             .get(0)
             .ok_or(Error::FromString(
@@ -69,6 +79,7 @@ impl TableUnit {
             return Err(Error::FromString(format!("TableUnit from_parameters error: no data!")));
         };
         Ok(Self::new(
+            parent,
             id,
             name,
             unit,
@@ -79,7 +90,11 @@ impl TableUnit {
         ))
     }
     //
-    pub fn from_criterion(data: &[String], result: &HashMap<i32, CriteriaData>,) -> Result<Self, Error> {
+    pub fn from_criterion(
+        parent: &Dbg, 
+        data: &[String], 
+        result: &HashMap<i32, CriteriaData>,
+    ) -> Result<Self, Error> {
         let id = data
             .get(0)
             .ok_or(Error::FromString(
@@ -111,6 +126,7 @@ impl TableUnit {
             return Err(Error::FromString(format!("TableUnit from_criterion error: no data!")));
         };
         Ok(Self::new(
+            parent,
             id,
             name,
             unit,

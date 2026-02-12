@@ -87,12 +87,6 @@ impl Into<[f64; 3]> for Position {
     }
 }
 //
-impl From<nalgebra::Point3<f64>> for Position {
-    fn from(v: nalgebra::Point3<f64>) -> Self {
-        Self::new(v.x, v.y, v.z)
-    }
-}
-//
 impl From<(f64, f64, f64)> for Position {
     fn from(v: (f64, f64, f64)) -> Self {
         Self::new(v.0, v.1, v.2)

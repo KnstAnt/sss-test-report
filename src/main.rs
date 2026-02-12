@@ -1,15 +1,15 @@
+use crate::conf::conf::Conf;
+use crate::db::api::ApiClient;
 use debugging::session::debug_session::{DebugSession, LogLevel};
 use log::info;
 use parser::Report;
 use sal_core::dbg::Dbg;
 use std::io;
 use std::io::*;
-use crate::conf::conf::Conf;
-use crate::db::api::{ApiClient, Db};
 
+mod conf;
 mod content;
 mod db;
-mod conf;
 mod formatter;
 mod parser;
 
@@ -19,25 +19,21 @@ fn main() {
         .module("api_tools", LogLevel::Error)
         .init();
     let dbg = Dbg::own("main");
-    info!("starting up");    
+    info!("starting up");
     let conf = "./config.yaml";
     let conf = Conf::new(&dbg, conf);
-    let language = Some("ru".to_owned());   
+    let language = "ru".to_owned();
     let mut report = Report::new(
         &dbg,
-        language.clone(),
-        Db::new(
-        &dbg,
         conf.api.params.ship_id.clone(),
-        conf.api.params.project_id.clone().unwrap_or("NULL".to_owned()),
-        language,        
+        conf.api.params.project_id.clone(),
+        language.clone(),
         ApiClient::new(
             &dbg,
             conf.api.address.database.clone(),
             conf.api.address.host.clone(),
             conf.api.address.port.clone(),
         ),
-    ),
     );
     if let Err(error) = report.get_target(&conf.data.dir, &conf.data.name) {
         let mut stdout = io::stdout().lock();
@@ -63,22 +59,18 @@ fn main() {
         //       println!("{}", error.to_string());
         return;
     }
-    let language = Some("en".to_owned());
+    let language = "en".to_owned();
     let mut report = Report::new(
-        &dbg,        
+        &dbg,
+        conf.api.params.ship_id.clone(),
+        conf.api.params.project_id.clone(),
         language.clone(),
-        Db::new(
+        ApiClient::new(
             &dbg,
-            conf.api.params.ship_id.clone(),
-            conf.api.params.project_id.clone().unwrap_or("NULL".to_owned()),
-            language,            
-            ApiClient::new(
-                &dbg,                
-                conf.api.address.database.clone(),
-                conf.api.address.host.clone(),
-                conf.api.address.port.clone(),
-            ),            
-        )
+            conf.api.address.database.clone(),
+            conf.api.address.host.clone(),
+            conf.api.address.port.clone(),
+        ),
     );
     if let Err(error) = report.get_target(&conf.data.dir, &conf.data.name) {
         let mut stdout = io::stdout().lock();

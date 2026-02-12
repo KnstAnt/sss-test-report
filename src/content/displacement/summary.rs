@@ -1,6 +1,6 @@
 use std::collections::HashMap;
-
-use crate::{content::{stability::template::Template, Content}, db::parameters::ParameterData, error::Error};
+use sal_core::{dbg::Dbg, error::Error};
+use crate::{content::{stability::template::Template, Content}, db::parameters::ParameterData};
 
 pub struct Summary {
     table: Template,

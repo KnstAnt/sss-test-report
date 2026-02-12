@@ -5,10 +5,8 @@ use cargo::Cargo;
 use container::Container;
 use summary::Summary;
 use tank::Tank;
-
 use sal_core::{dbg::Dbg, error::Error};
 use super::Content;
-
 pub mod tank;
 pub mod cargo;
 pub mod bulkhead;

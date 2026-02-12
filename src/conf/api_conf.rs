@@ -15,7 +15,7 @@ pub struct Params {
     #[serde(alias = "ship-id")]
     pub ship_id: String,
     #[serde(alias = "project-id")]
-    pub project_id: Option<String>,
+    pub project_id: String,
 }
 ///
 /// Данные для доступа к БД

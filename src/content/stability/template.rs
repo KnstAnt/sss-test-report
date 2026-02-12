@@ -1,6 +1,7 @@
 use super::unit::TableUnit;
-use crate::{content::Content, db::{criterion::CriteriaData, parameters::ParameterData}, error::Error};
+use crate::{content::Content, db::{criterion::CriteriaData, parameters::ParameterData}};
 use std::collections::HashMap;
+use sal_core::{dbg::Dbg, error::Error};
 
 //
 pub struct Template {
@@ -11,8 +12,14 @@ pub struct Template {
 }
 //
 impl Template {
-    pub fn new(header: &[&str], data: &[TableUnit], ship_wide: f64) -> Self {
+    pub fn new(
+        dbg: Dbg,
+        header: &[&str], 
+        data: &[TableUnit], 
+        ship_wide: f64
+    ) -> Self {
         Self {
+            dbg,
             header: header.iter().map(|s| s.to_string()).collect(),
             data: Vec::from(data),
             ship_wide,
@@ -20,6 +27,7 @@ impl Template {
     }
     //
     pub fn from(
+        dbg: Dbg,
         language: &String,
         data: &mut [TableUnit], 
         ship_wide: f64,
@@ -58,6 +66,7 @@ impl Template {
             }
         );
         Ok(Self::new(
+            dbg,
             &header,
             &data,
             ship_wide,
@@ -65,18 +74,21 @@ impl Template {
     }
     //
     pub fn from_parameters(
+        parent: &Dbg,
         language: &String,
         target: &Vec<Vec<String>>,
         result: &HashMap<i32, ParameterData>,
         ship_wide: f64,
     ) -> Result<Self, Error> {
+        let dbg = Dbg::new(parent, "Template");
         let mut data = Vec::new();
         for row in target.iter() {
-            if let Ok(row) = TableUnit::from_parameters(row, result) {
+            if let Ok(row) = TableUnit::from_parameters(&dbg, row, result) {
                 data.push(row);
             }
         }
         Self::from(
+            dbg,
             language,
             &mut data,
             ship_wide,
@@ -84,18 +96,21 @@ impl Template {
     }
     //
     pub fn from_criterion(
+        parent: &Dbg,
         language: &String,
         target: &Vec<Vec<String>>,
         result: &HashMap<i32, CriteriaData>,
         ship_wide: f64,
     ) -> Result<Self, Error> {
+        let dbg = Dbg::new(parent, "Template");
         let mut data = Vec::new();
         for row in target.iter() {
-            if let Ok(row) = TableUnit::from_criterion(row, result) {
+            if let Ok(row) = TableUnit::from_criterion(&dbg, row, result) {
                 data.push(row);
             }
         }
         Self::from(
+            dbg,
             language,
             &mut data,
             ship_wide,

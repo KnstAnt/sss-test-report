@@ -23,7 +23,7 @@ pub struct Db {
     dbg: Dbg,
     ship_id: String,
     project_id: String,
-    language: String,
+    language: String, 
     api_client: ApiClient,
 }
 //
@@ -32,7 +32,7 @@ impl Db {
         parent: &Dbg,
         ship_id: String,
         project_id: String,
-        language: Option<String>, // "ru" - russian (default) / "en" - english
+        language: String, // "ru" - russian (default) / "en" - english
         api_client: ApiClient,        
     ) -> Self {
         let dbg = Dbg::new(parent, "ModelCached");
@@ -40,9 +40,7 @@ impl Db {
             dbg,
             ship_id,
             project_id,
-            language: language
-                .map_or("ru", |v| if v.contains("en") { "en" } else { "ru" })
-                .to_owned(),
+            language,
             api_client,
         }
     }

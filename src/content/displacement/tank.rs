@@ -1,9 +1,8 @@
 use crate::{
     content::Content,
     db::tank::TankData,
-    error::Error,
 };
-
+use sal_core::{dbg::Dbg, error::Error};
 use super::table::Table;
 
 pub struct Tank {

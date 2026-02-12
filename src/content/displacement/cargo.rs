@@ -1,7 +1,7 @@
 use crate::{
-    content::Content, db::cargo::CargoData, error::Error
+    content::Content, db::cargo::CargoData
 };
-
+use sal_core::{dbg::Dbg, error::Error};
 use super::table::Table;
 
 pub struct Cargo {
