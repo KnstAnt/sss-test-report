@@ -6,6 +6,7 @@ use super::template::Template;
 
 
 pub struct Parameters {
+    dbg: Dbg,
     title: String, 
     table: Template,
 }

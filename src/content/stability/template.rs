@@ -4,6 +4,7 @@ use std::collections::HashMap;
 
 //
 pub struct Template {
+    dbg: Dbg,
     header: Vec<String>,
     data: Vec<TableUnit>,
     ship_wide: f64,

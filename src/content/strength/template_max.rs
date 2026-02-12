@@ -4,6 +4,7 @@ use crate::content::Content;
 use crate::content::misc::{Curve, ICurve};
 //
 pub struct TemplateMax {
+    dbg: Dbg,
     name: String,
     language: String,
     result: Vec<(f64, f64)>, //x, value
@@ -15,6 +16,7 @@ pub struct TemplateMax {
 impl TemplateMax {
     //
     pub fn new( 
+        parent: &Dbg, 
         name: String,
         language: &String,
         result: &[(f64, f64)],
@@ -23,6 +25,7 @@ impl TemplateMax {
         limit: &[(f64, f64, f64)],
     ) -> Self {
         Self {
+            dbg: Dbg::new(parent, "TemplateMax"),
             name,
             language: language.clone(),
             result: Vec::from(result),
@@ -51,6 +54,6 @@ impl Content for TemplateMax {
         values.push((value_str.to_owned(), limit_min.value(x)?, self.target_abs.1, result.value(x)?, limit_max.value(x)?, self.target_abs.2));
         let x = self.target_percent.0;
         values.push((percent_str.to_owned(), limit_min.value(x)?, self.target_percent.1, result.value(x)?, limit_max.value(x)?, self.target_percent.2));
-        super::table_max::TableMax::new_header(&self.language, &self.name, &values).to_string()
+        super::table_max::TableMax::new_header(&self.dbg, &self.language, &self.name, &values).to_string()
     } 
 }

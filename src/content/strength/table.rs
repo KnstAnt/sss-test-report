@@ -1,4 +1,7 @@
+use sal_core::{dbg::Dbg, error::Error};
+
 pub struct Table {
+    dbg: Dbg,
     header: Vec<String>,
     // fr, min, doc, calc, max, limit_%
     values: Vec<(i32, f64, f64, f64, f64, f64)>,
@@ -6,18 +9,15 @@ pub struct Table {
 //
 impl Table {
     // fr, min, doc, calc, max, limit_%
-    pub fn new(header: &[String], values: &[(i32, f64, f64, f64, f64, f64)]) -> Self {
+    pub fn new(parent: &Dbg, header: &[String], values: &[(i32, f64, f64, f64, f64, f64)]) -> Self {
         Self {
+            dbg: Dbg::new(parent, "Table"),
             header: header.iter().map(|s| s.to_string()).collect(),
             values: Vec::from(values),
         }
     }
     //
-    pub fn from(
-        language: &String,
-        name: &str,
-        values: &[(i32, f64, f64, f64, f64, f64)],
-    ) -> Self {
+    pub fn from(parent: &Dbg, language: &String, name: &str, values: &[(i32, f64, f64, f64, f64, f64)]) -> Self {
         let header = if language.contains("en") {
             vec![
                 "Fr".to_string(),
@@ -41,10 +41,10 @@ impl Table {
                 "Статус".to_string(),
             ]
         };
-        Self::new(&header, values)
+        Self::new(parent, &header, values)
     }
     //
-    pub fn to_string(self) -> Result<String, crate::error::Error> {
+    pub fn to_string(self) -> Result<String, Error> {
         let mut string = self
             .header
             .iter()

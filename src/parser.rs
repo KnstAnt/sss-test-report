@@ -21,10 +21,9 @@ pub struct Report {
     db: Db,
     general: HashMap<String, String>,
     ship_wide: Option<f64>,
+    strength_result: Vec<StrengthResultData>,    
     strength_target: Vec<(f64, i32, f64, f64, f64)>, //x, fr, SF, BM, limit_%
     strength_target_max: Vec<(String, f64, f64, f64)>, // name, x, value, limit_%
-    strength_result: Vec<(f64, f64, f64)>,           //x, SF, BM
-    strength_limit: Vec<(f64, f64, f64, f64, f64)>,  // fr, bm_min, bm_max, sf_min, sf_max
     lever_diagram_result: Vec<(f64, f64)>,           //angle, level
     lever_diagram_target: Vec<(f64, f64, f64, f64)>, //angle, level, limit_%, limit_abs
     criteria_target: Vec<Vec<String>>,

@@ -7,14 +7,12 @@ use api_tools::client::api_request::*;
 use super::bulk_cargo::BulkCargoDataArray;
 use super::bulkhead::BulkheadDataArray;
 use super::cargo::CargoDataArray;
-use super::computed_frame::ComputedFrameDataArray;
 use super::container::ContainerDataArray;
 use super::criterion::CriteriaDataArray;
 use super::data::DataRowArray;
 use super::data::DataShipArray;
 use super::parameters::ParameterDataArray;
 use super::stability_diagram::StabilityDiagramDataArray;
-use super::strength_limit::StrengthLimitDataArray;
 use super::strength_result::StrengthResultDataArray;
 use super::tank::TankDataArray;
 
@@ -48,14 +46,6 @@ impl Db {
             api_client,
         }
     }
-    //
-    fn language<'a>(&self, ru: &'a str, en: &'a str) -> &'a str {
-        if self.language.contains("en") {
-            en
-        } else {
-            ru
-        }
-    }
     /// Чтение данных из БД. Функция читает данные за несколько запросов,
     /// парсит их и проверяет данные на корректность.
     /// Чтение данных из БД. Функция читает данные за несколько запросов,
@@ -87,10 +77,10 @@ impl Db {
                     self.project_id,
                 ))
                 .map_err(|e| {
-                    Error::FromString(format!("api_client get_criterion_data error: {e}"))
+                    error.pass(e)
                 })?,
         )
-        .map_err(|e| Error::FromString(format!("api_client get_criterion_data error: {e}")))
+        .map_err(|e| error.pass(e))
     }
     //
     pub fn get_parameters_data(&mut self) -> Result<ParameterDataArray, Error> {
@@ -116,11 +106,9 @@ impl Db {
                     self.ship_id, 
                     self.project_id,
                 ))
-                .map_err(|e| {
-                    Error::FromString(format!("api_client get_parameters_data error: {e}"))
-                })?,
+                .map_err(|e| error.pass(e))?,
         )
-        .map_err(|e| Error::FromString(format!("api_client get_parameters_data error: {e}")))
+        .map_err(|e| error.pass(e))
     }
     //
     pub fn get_ship_wide(&mut self) -> Result<DataShipArray, Error> {
@@ -129,20 +117,30 @@ impl Db {
             &self
                 .api_client
                 .fetch(&format!(
-                "SELECT key, value FROM \"ship/ship_general_characteristics\" WHERE key='MouldedBreadth' AND ship_id={} AND project_id IS NOT DISTINCT FROM {}",
+                "SELECT 
+                  key, \
+                  value
+                FROM 
+                  \"ship/ship_general_characteristics\"
+                WHERE
+                  key='MouldedBreadth' 
+                  AND ship_id={} 
+                  AND project_id IS NOT DISTINCT FROM {}",
                 self.ship_id,
                 self.project_id,
             ))
                 .map_err(|e| {
-                    Error::FromString(format!("api_client get_criterion_data error: {e}"))
+                    error.pass(e)
                 })?,
         )
-        .map_err(|e| Error::FromString(format!("api_client get_ship_wide error: {e}")))
+        .map_err(|e| error.pass(e))
     }
     //
     pub fn get_strength_result(&mut self) -> Result<StrengthResultDataArray, Error> {
+        let error = Error::new(&self.dbg, "get_strength_result");
         let strength_result = StrengthResultDataArray::parse(
             &self
+                .api_client
                 .fetch(&format!(
                     "SELECT 
                         frame_x as x, \
@@ -164,17 +162,9 @@ impl Db {
                     ORDER BY x;",
                     self.ship_id, self.project_id,
                 ))
-                .map_err(|e| {
-                    Error::FromString(format!(
-                        "api_server get_strength_result strength_result error: {e}"
-                    ))
-                })?,
+                .map_err(|e| error.pass( e))?,
         )
-        .map_err(|e| {
-            Error::FromString(format!(
-                "api_server get_strength_result strength_result error: {e}"
-            ))
-        })?;
+        .map_err(|e| error.pass(e))?;
         Ok(strength_result)
     }
     //
@@ -184,15 +174,21 @@ impl Db {
             &self
                 .api_client
                 .fetch(&format!(
-                    "SELECT angle, value_dso FROM stability_diagram WHERE ship_id={} AND project_id IS NOT DISTINCT FROM {};",
+                    "SELECT 
+                      angle, \
+                      value_dso 
+                    FROM 
+                      stability_diagram 
+                    WHERE 
+                      ship_id={} AND project_id IS NOT DISTINCT FROM {};",
                     self.ship_id,
                     self.project_id,
                 ))
                 .map_err(|e| {
-                    Error::FromString(format!("api_client get_lever_diagram error: {e}"))
+                    error.pass( e)
                 })?,
         )
-        .map_err(|e| Error::FromString(format!("api_client get_lever_diagram error: {e}")))?
+        .map_err(|e| error.pass(e))?
         .data())
     }
 
@@ -213,15 +209,15 @@ impl Db {
                         compartment 
                     WHERE 
                         category_id=2 AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
-                    self.language("name_rus", "name_engl"),
+                    self.language,
                     self.ship_id,
                     self.project_id,
                 ))
                 .map_err(|e| {
-                    Error::FromString(format!("api_client get_ballast_tanks error: {e}"))
+                    error.pass(e)
                 })?,
         )
-        .map_err(|e| Error::FromString(format!("api_client get_ballast_tanks error: {e}")))
+        .map_err(|e| error.pass(e))
     }
     //
     pub fn get_stores_tanks(&mut self) -> Result<TankDataArray, Error> {
@@ -240,13 +236,13 @@ impl Db {
                         compartment 
                     WHERE 
                         category_id>=3 AND category_id<=8 AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
-                    self.language("name_rus", "name_engl"),
+                    self.language,
                     self.ship_id,
                     self.project_id,
                 ))
-                .map_err(|e| Error::FromString(format!("api_client get_stores_tanks error: {e}")))?,
+                .map_err(|e| error.pass(e))?,
         )
-        .map_err(|e| Error::FromString(format!("api_client get_stores_tanks error: {e}")))
+        .map_err(|e| error.pass(e))
     }
     //
     pub fn get_stores(&mut self) -> Result<CargoDataArray, Error> {
@@ -267,9 +263,9 @@ impl Db {
                         category_id=9 AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
                     self.ship_id, self.project_id,
                 ))
-                .map_err(|e| Error::FromString(format!("api_client get_stores error: {e}")))?,
+                .map_err(|e| error.pass(e))?,
         )
-        .map_err(|e| Error::FromString(format!("api_client get_stores error: {e}")))
+        .map_err(|e| error.pass(e))
     }
     //
     pub fn get_bulkheads(&mut self) -> Result<BulkheadDataArray, Error> {
@@ -291,14 +287,14 @@ impl Db {
                         bulkhead_place as bp ON b.id = bp.bulkhead_id
                     WHERE 
                         b.ship_id={} AND b.project_id IS NOT DISTINCT FROM {};",
-                            self.language("name_rus", "name_engl"),
-                            self.language("name_rus", "name_engl"),
+                            self.language,
+                            self.language,
                             self.ship_id,
                             self.project_id,
                         ))
-                        .map_err(|e| Error::FromString(format!("api_client get_bulkheads error: {e}")))?,
+                        .map_err(|e| error.pass(e))?,
         )
-        .map_err(|e| Error::FromString(format!("api_client get_bulkheads error: {e}")))
+        .map_err(|e| error.pass(e))
     }
     //
     pub fn get_bulk_cargo(&mut self) -> Result<BulkCargoDataArray, Error> {
@@ -318,13 +314,13 @@ impl Db {
                         hold_compartment 
                     WHERE 
                         ship_id={} AND project_id IS NOT DISTINCT FROM {};",
-                    self.language("name_rus", "name_engl"),
+                    self.language,
                     self.ship_id,
                     self.project_id,
                 ))
-                .map_err(|e| Error::FromString(format!("api_client get_bulk_cargo error: {e}")))?,
+                .map_err(|e| error.pass(e))?,
         )
-        .map_err(|e| Error::FromString(format!("api_client get_bulk_cargo error: {e}")))
+        .map_err(|e| error.pass(e))
     }
     //
     pub fn get_container(&mut self) -> Result<ContainerDataArray, Error> {
@@ -352,9 +348,9 @@ impl Db {
                         c.ship_id={} AND c.project_id IS NOT DISTINCT FROM {};",
                     self.ship_id, self.project_id,
                 ))
-                .map_err(|e| Error::FromString(format!("api_client get_container error: {e}")))?,
+                .map_err(|e| error.pass(e))?,
         )
-        .map_err(|e| Error::FromString(format!("api_client get_container error: {e}")))
+        .map_err(|e| error.pass(e))
     }
     //
     pub fn get_general_cargo(&mut self) -> Result<CargoDataArray, Error> {
@@ -376,9 +372,9 @@ impl Db {
                     self.ship_id, self.project_id,
                 ))
                 .map_err(|e| {
-                    Error::FromString(format!("api_client get_general_cargo error: {e}"))
+                    error.pass(e)
                 })?,
         )
-        .map_err(|e| Error::FromString(format!("api_client get_general_cargo error: {e}")))
+        .map_err(|e| error.pass(e))
     }
 }

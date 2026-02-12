@@ -12,6 +12,7 @@ pub mod template_max;
 
 //
 pub struct Strength {
+    dbg: Dbg,
     title: String,
     shear_force: Template,
     shear_force_max: Option<TemplateMax>,
@@ -21,6 +22,7 @@ pub struct Strength {
 //
 impl Strength {
     pub fn new(
+        dbg: Dbg,
         title: String,
         shear_force: Template,
         shear_force_max: Option<TemplateMax>,
@@ -28,6 +30,7 @@ impl Strength {
         bending_moment_max: Option<TemplateMax>,
     ) -> Self {
         Self {
+            dbg,
             title,
             shear_force,
             shear_force_max,
@@ -37,6 +40,7 @@ impl Strength {
     }
     //
     pub fn new_named(
+        parent: &Dbg,
         language: &String,
         // x, sf, bm
         result: &[(f64, f64, f64)],
@@ -47,6 +51,7 @@ impl Strength {
         // (frame_x, bm_min, bm_max, sf_min, sf_max)
         limit: &[(f64, f64, f64, f64, f64)],
     ) -> Self {
+        let dbg = Dbg::new(parent, "Strength");
         let title = if language.contains("en") {
             "## Strength"
         } else {
@@ -106,6 +111,7 @@ impl Strength {
         {
             (
                 Some(TemplateMax::new(
+                    &dbg,
                     "SF".to_owned(),
                     language,
                     &sf_result,
@@ -114,6 +120,7 @@ impl Strength {
                     &sf_limit,
                 )),
                 Some(TemplateMax::new(
+                    &dbg,
                     "BM".to_owned(),
                     language,
                     &bm_result,
@@ -126,8 +133,10 @@ impl Strength {
             (None, None)
         };
         Self::new(
+            dbg.clone(),
             title,
             Template::new(
+                &dbg,
                 language.clone(),
                 header_sf,
                 "SF".to_owned(),
@@ -137,6 +146,7 @@ impl Strength {
             ),
             shear_force_max,
             Template::new(
+                &dbg,
                 language.clone(),
                 header_bm,
                 "BM".to_owned(),

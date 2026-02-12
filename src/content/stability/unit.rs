@@ -5,6 +5,7 @@ use crate::{db::{criterion::CriteriaData, parameters::ParameterData}, error::Err
 //
 #[derive(Debug, Clone)]
 pub struct TableUnit {
+    dbg: Dbg,
     pub id: i32,
     pub name: String,
     pub unit: String,

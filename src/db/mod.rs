@@ -6,7 +6,6 @@ pub mod api;
 mod data;
 mod serde_parser;
 mod strength_result;
-mod strength_limit;
 mod stability_diagram;
 pub mod tank;
 pub mod cargo;

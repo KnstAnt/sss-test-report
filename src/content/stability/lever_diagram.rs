@@ -1,6 +1,7 @@
 use crate::content::misc::{Curve, ICurve};
 
 pub struct LeverDiagram {
+    dbg: Dbg,
     title: String,
     header: Vec<String>,
     // angle, dso

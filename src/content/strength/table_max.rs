@@ -1,3 +1,5 @@
+use sal_core::{dbg::Dbg, error::Error};
+
 pub struct TableMax {
     dbg: Dbg,
     header: Vec<String>,
@@ -7,14 +9,24 @@ pub struct TableMax {
 //
 impl TableMax {
     // parameter_name, min, doc, calc, max, limit_%
-    pub fn new(header: &[String], values: &[(String, f64, f64, f64, f64, f64)]) -> Self {
-        Self{
+    pub fn new(
+        parent: &Dbg,
+        header: &[String],
+        values: &[(String, f64, f64, f64, f64, f64)],
+    ) -> Self {
+        Self {
+            dbg: Dbg::new(parent, "TableMax"),
             header: header.iter().map(|s| s.to_string()).collect(),
             values: Vec::from(values),
         }
     }
     //
-    pub fn new_header(language: &String, name: &str, values: &[(String, f64, f64, f64, f64, f64)]) -> Self {
+    pub fn new_header(
+        parent: &Dbg,
+        language: &String,
+        name: &str,
+        values: &[(String, f64, f64, f64, f64, f64)],
+    ) -> Self {
         let header = if language.contains("en") {
             vec![
                 "Parameter".to_string(),
@@ -38,13 +50,10 @@ impl TableMax {
                 "Статус".to_string(),
             ]
         };
-        Self::new(
-            &header,
-            values,
-        )
+        Self::new(parent, &header, values)
     }
     //
-    pub fn to_string(self) -> Result<String, crate::error::Error> {
+    pub fn to_string(self) -> Result<String, Error> {
         let mut string = self
             .header
             .iter()
@@ -54,7 +63,7 @@ impl TableMax {
             + &(0..self.header.len()).map(|_| "|---").collect::<String>()
             + "|\n";
         for (name, min, target, result, max, limit_p) in self.values {
-            let delta = (result - target) * 100.;           
+            let delta = (result - target) * 100.;
             let delta_result_percent = if delta > 0. {
                 if max != 0. {
                     delta / max
