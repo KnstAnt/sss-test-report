@@ -63,7 +63,7 @@ impl Report {
                 &dbg,
                 ship_id,
                 project_id,
-                language.clone(),
+                language.to_owned(),
                 api_client,
             ),
             language: Lang::from_str(language),
@@ -201,13 +201,16 @@ impl Report {
             self.db.get_criterion_data()?.data().into_iter()
                 .filter(|(_, v)| v.result.is_some() && v.target.is_some())
                 .map(|(i, v)| 
-                // Если ид=17 - Минимальная метацентрическая высота деления на отсеки
-                // то для отчета берем целевое значение
-                if i != 17 {
-                    (i, v.target.unwrap())
-                } else {
-                    (i, v.result.unwrap())
-                }).collect();
+                    // Если ид=17 - Минимальная метацентрическая высота деления на отсеки
+                    // то для отчета берем целевое значение
+                    if i != 17 {
+                        (i, v)
+                    } else {
+                        let mut data = v;
+                        data.result = data.target;
+                        (i, data)
+                    }
+                ).collect();
         self.parameters_result =
             self.db.get_parameters_data()?.data().into_iter()
                 .map(|(i, v)| (i, v))
@@ -215,6 +218,19 @@ impl Report {
         self.strength_result = self.db.get_strength_result().map_err(|err| error.pass(err))?.data();
         self.lever_diagram_result =
             self.db.get_lever_diagram()?;
+        self.ballast_tanks =
+            self.db.get_ballast_tanks()?.data();
+        self.stores_tanks =
+            self.db.get_stores_tanks()?.data();
+        self.stores = self.db.get_stores()?.data();
+        self.bulkheads =
+            self.db.get_bulkheads()?.data();
+        self.bulk_cargo =
+            self.db.get_bulk_cargo()?.data();
+        self.container =
+            self.db.get_container()?.data();
+        self.general_cargo =
+            self.db.get_general_cargo()?.data();
         Ok(())
     }
     //
@@ -258,15 +274,14 @@ impl Report {
             &self.draught_target,
             &self.parameters_result,
             self.ship_wide.unwrap(),
-        )?.to_string().map_err(|e| format!("Parser write Draught error:{}", e))? + "\n");        
+        )?.to_string().map_err(|e| error.pass(e))? + "\n");        
         content += &(Strength::new_named(
                 &self.dbg,
                 &self.language,
                 &self.strength_result,
                 &self.strength_target,
                 &self.strength_target_max,
-                &self.strength_limit,
-            ).to_string().map_err(|e| format!("Parser write Strength error:{}", e))? + "\n"); 
+            ).to_string().map_err(|e| error.pass(e))? + "\n"); 
         content += &(Stability::new_named(
             &self.dbg,
             &self.language,
@@ -277,7 +292,7 @@ impl Report {
             self.ship_wide.unwrap(),
             &self.lever_diagram_target,
             &self.lever_diagram_result,
-        )?.to_string().map_err(|e| format!("Parser write Stability error:{}", e))? + "\n"); 
+        )?.to_string().map_err(|e| error.pass(e))? + "\n"); 
         let path = (path.to_owned() + "/" + name).replace("//", "/");
         std::fs::write(format!("{}", path), content).expect("Unable to write {path}");
         std::thread::sleep(std::time::Duration::from_secs(1));

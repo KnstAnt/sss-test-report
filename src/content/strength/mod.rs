@@ -3,7 +3,7 @@ use template_max::TemplateMax;
 use sal_core::{dbg::Dbg, error::Error};
 
 
-use crate::content::misc::lang::Lang;
+use crate::{content::misc::lang::Lang, db::strength_result::StrengthResultData};
 
 use super::Content;
 
@@ -45,13 +45,13 @@ impl Strength {
         parent: &Dbg,
         language: &Lang,
         // x, sf, bm
-        result: &[(f64, f64, f64)],
+        result: &[StrengthResultData],
         // x, fr, sf, bm, limit_%
         target: &[(f64, i32, f64, f64, f64)],
         // x, sf, bm, limit_%
         target_max: &[(String, f64, f64, f64)],
         // (frame_x, bm_min, bm_max, sf_min, sf_max)
-        limit: &[(f64, f64, f64, f64, f64)],
+   //     limit: &[(f64, f64, f64, f64, f64)],
     ) -> Self {
         let dbg = Dbg::new(parent, "Strength");
         let title = if *language == Lang::En {
@@ -70,7 +70,7 @@ impl Strength {
         };
         let (sf_result, bm_result): (Vec<_>, Vec<_>) = result
             .iter()
-            .map(|(x, sf, bm)| ((*x, *sf * 0.001), (*x, *bm * 0.001)))
+            .map(|v| ((v.x, v.sf * 0.001), (v.x, v.bm * 0.001)))
             .unzip();
         let (sf_target, bm_target): (Vec<_>, Vec<_>) = target
             .iter()
@@ -81,12 +81,12 @@ impl Strength {
                 )
             })
             .unzip();
-        let (sf_limit, bm_limit): (Vec<_>, Vec<_>) = limit
+        let (sf_limit, bm_limit): (Vec<_>, Vec<_>) = result
             .iter()
-            .map(|(x, bm_min, bm_max, sf_min, sf_max)| {
+            .map(|v| {
                 (
-                    (*x, *sf_min * 0.001, *sf_max * 0.001),
-                    (*x, *bm_min * 0.001, *bm_max * 0.001),
+                    (v.x, v.sf_limit_low * 0.001, v.sf_limit_high * 0.001),
+                    (v.x, v.bm_limit_low * 0.001, v.bm_limit_high * 0.001),
                 )
             })
             .unzip();

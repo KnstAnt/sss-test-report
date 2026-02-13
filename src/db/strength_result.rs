@@ -7,7 +7,6 @@ use super::DataArray;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct StrengthResultData {
     pub x: f64,
-    pub frame: Option<i32>,
     /// Перерезывающие силы
     pub sf: f64,
     pub sf_limit_low: f64,
@@ -35,11 +34,7 @@ pub type StrengthResultDataArray = DataArray<StrengthResultData>;
 //
 impl StrengthResultDataArray {
     /// Преобразование и возвращает данные в виде вектора (индекс, начало, конец) шпации
-    pub fn data(mut self) -> Vec<StrengthResultData> {
-        self
-            .data
-        //    .iter_mut()
-         //   .map(|v| (v.sf, v.bm))
-        //    .collect()
+    pub fn data(self) -> Vec<StrengthResultData> {
+        self.data
     }
 }

@@ -1,15 +1,12 @@
 //! Функции для работы с БД
 use crate::db::serde_parser::IFromJson;
 use sal_core::{dbg::Dbg, error::Error};
-use api_tools::client::api_query::*;
-use api_tools::client::api_request::*;
-
 use super::bulk_cargo::BulkCargoDataArray;
 use super::bulkhead::BulkheadDataArray;
 use super::cargo::CargoDataArray;
 use super::container::ContainerDataArray;
 use super::criterion::CriteriaDataArray;
-use super::data::DataRowArray;
+//use super::data::DataRowArray;
 use super::data::DataShipArray;
 use super::parameters::ParameterDataArray;
 use super::stability_diagram::StabilityDiagramDataArray;
@@ -23,7 +20,7 @@ pub struct Db {
     dbg: Dbg,
     ship_id: String,
     project_id: String,
-    language: &Lang, 
+    language: String, 
     api_client: ApiClient,
 }
 //
@@ -32,7 +29,7 @@ impl Db {
         parent: &Dbg,
         ship_id: String,
         project_id: String,
-        language: &Lang, // "ru" - russian (default) / "en" - english
+        language: String, 
         api_client: ApiClient,        
     ) -> Self {
         let dbg = Dbg::new(parent, "ModelCached");
@@ -141,22 +138,22 @@ impl Db {
                 .api_client
                 .fetch(&format!(
                     "SELECT 
-                        frame_x as x, \
-                        value_shear_force as sf, \
-                        value_bending_moment as bm, \
-                        limit_low_shear_force as sf_limit_low, \
-                        limit_high_shear_force as sf_limit_high, \
-                        percent_shear_force as sf_percent, \
-                        status_shear_force as sf_status, \
-                        limit_low_bending_moment as bm_limit_low, \
-                        limit_high_bending_moment as bm_limit_high, \
-                        percent_bending_moment as bm_percent, \
-                        status_bending_moment as bm_status
+                        r.frame_x as x, \
+                        r.value_shear_force as sf, \
+                        r.value_bending_moment as bm, \
+                        r.limit_low_shear_force as sf_limit_low, \
+                        r.limit_high_shear_force as sf_limit_high, \
+                        r.percent_shear_force as sf_percent, \
+                        r.status_shear_force as sf_status, \
+                        r.limit_low_bending_moment as bm_limit_low, \
+                        r.limit_high_bending_moment as bm_limit_high, \
+                        r.percent_bending_moment as bm_percent, \
+                        r.status_bending_moment as bm_status
                     FROM
-                        result_strength_force_and_moment
+                        result_strength_force_and_moment AS r
                     WHERE 
-                        ship_id={} AND
-                        project_id IS NOT DISTINCT FROM {}
+                        r.ship_id={} AND
+                        r.project_id IS NOT DISTINCT FROM {}
                     ORDER BY x;",
                     self.ship_id, self.project_id,
                 ))
