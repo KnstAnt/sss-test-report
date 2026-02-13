@@ -1,5 +1,5 @@
 use super::unit::TableUnit;
-use crate::{content::Content, db::{criterion::CriteriaData, parameters::ParameterData}};
+use crate::{content::{Content, misc::lang::Lang}, db::{criterion::CriteriaData, parameters::ParameterData}};
 use std::collections::HashMap;
 use sal_core::{dbg::Dbg, error::Error};
 
@@ -28,11 +28,11 @@ impl Template {
     //
     pub fn from(
         dbg: Dbg,
-        language: &String,
+        language: &Lang,
         data: &mut [TableUnit], 
         ship_wide: f64,
     ) -> Result<Self, Error> {
-        let header = if language.contains("en") {
+        let header = if *language == Lang::En {
             vec![
                 "№",
                 "Name",
@@ -58,7 +58,7 @@ impl Template {
             ]
         }
         .to_owned();
-        let (src, trg) = if language.contains("en") { ("ширины судна", "breadth") } else { ("breadth", "ширины судна") };
+        let (src, trg) = if language == Lang::En { ("ширины судна", "breadth") } else { ("breadth", "ширины судна") };
         data.into_iter().for_each(|v| {
                 v.limit_percent = v.limit_percent.take().map(|v| {
                     v.replace(src, trg)
@@ -75,7 +75,7 @@ impl Template {
     //
     pub fn from_parameters(
         parent: &Dbg,
-        language: &String,
+        language: &Lang,
         target: &Vec<Vec<String>>,
         result: &HashMap<i32, ParameterData>,
         ship_wide: f64,

@@ -27,7 +27,7 @@ impl TableMax {
         name: &str,
         values: &[(String, f64, f64, f64, f64, f64)],
     ) -> Self {
-        let header = if language.contains("en") {
+        let header = if language == Lang::En {
             vec![
                 "Parameter".to_string(),
                 format!("${name}_{{min}}$"),

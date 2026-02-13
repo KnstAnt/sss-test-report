@@ -19,7 +19,7 @@ impl Criterion {
         ship_wide: f64,
     ) -> Result<Self, Error> {
         let dbg = Dbg::new(parent, "Criterion");
-        let title = if language.contains("en") {
+        let title = if language == Lang::En {
             "Criteria"
         } else  {
             "Критерии"

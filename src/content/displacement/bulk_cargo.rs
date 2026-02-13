@@ -1,23 +1,24 @@
 use crate::{
-    content::Content, db::bulk_cargo::BulkCargoData
+    content::{Content, misc::lang::Lang}, db::bulk_cargo::BulkCargoData
 };
 use sal_core::{dbg::Dbg, error::Error};
 use super::table::Table;
 
 pub struct BulkCargo {
     dbg: Dbg,
+    title: String,
     table: Table,
 }
 //
 impl BulkCargo {
     //
-    pub fn new(dbg: Dbg, table: Table) -> Self {
-        Self { dbg, table }
+    pub fn new(dbg: Dbg, title: String, table: Table) -> Self {
+        Self { dbg, title, table }
     }
     //
-    pub fn from(parent: &Dbg, language: &String, data: &[BulkCargoData]) -> Result<Self, Error> {
+    pub fn from(parent: &Dbg, title: String, language: &Lang, data: &[BulkCargoData]) -> Result<Self, Error> {
         let dbg = Dbg::new(parent, "BulkCargo");
-        let header = if language.contains("en") { 
+        let header = if *language == Lang::En { 
             vec!["Name", "Weight", "x_g [m]", "y_g [m]", "z_g [m]", "Grain moment [tm]"]
         } else {
             vec!["Наименование", "Масса", "x_g [м]", "y_g [м]", "z_g [м]", "Кренящий момент от смещения зерна [тм]"]
@@ -35,13 +36,17 @@ impl BulkCargo {
                 )
             })
             .collect::<Vec<Vec<String>>>();
-        Ok(Self::new(dbg.clone(), Table::new(&dbg, &header, content)))
+        Ok(Self::new(dbg.clone(), title, Table::new(&dbg, &header, content)))
     }
 }
 //
 impl Content for BulkCargo {
     //
-    fn to_string(self) -> Result<String, Error> {
+    fn table(self) -> Result<String, Error> {
         self.table.to_string()
+    }
+    //
+    fn title(&self) -> String {
+        self.title.clone()        
     }
 }

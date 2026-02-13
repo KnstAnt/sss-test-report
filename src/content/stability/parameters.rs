@@ -19,7 +19,7 @@ impl Parameters {
         ship_wide: f64,
     ) -> Result<Self, Error> {
         let dbg = Dbg::new(parent, "Template");
-        let title = if language.contains("en") {
+        let title = if language == Lang::En {
             "Stability parameters"
         } else {
             "Параметры остойчивости"

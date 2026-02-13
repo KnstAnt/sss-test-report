@@ -17,8 +17,8 @@ impl Table {
         }
     }
     //
-    pub fn from(parent: &Dbg, language: &String, name: &str, values: &[(i32, f64, f64, f64, f64, f64)]) -> Self {
-        let header = if language.contains("en") {
+    pub fn from(parent: &Dbg, language: Lang, name: &str, values: &[(i32, f64, f64, f64, f64, f64)]) -> Self {
+        let header = if language == Lang::En {
             vec![
                 "Fr".to_string(),
                 format!("${name}_{{min}}$"),

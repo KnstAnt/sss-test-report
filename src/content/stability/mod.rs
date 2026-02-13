@@ -50,7 +50,7 @@ impl Stability {
         lever_diagram_result: &[(f64, f64)],
     ) -> Result<Self, Error> {
         let dbg = Dbg::new(parent, "Stability");
-        let title = if language.contains("en") {
+        let title = if language == Lang::En {
             "## Stability"
         } else {
             "## Остойчивость"

@@ -2,9 +2,9 @@ mod curve1d;
 mod position;
 mod vec;
 mod moment;
+pub mod lang;
 pub use curve1d::*;
 pub use position::*;
-
 use std::ops::AddAssign;
 use splines::Interpolate;
 

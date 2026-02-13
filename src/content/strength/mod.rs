@@ -52,13 +52,13 @@ impl Strength {
         limit: &[(f64, f64, f64, f64, f64)],
     ) -> Self {
         let dbg = Dbg::new(parent, "Strength");
-        let title = if language.contains("en") {
+        let title = if language == Lang::En {
             "## Strength"
         } else {
             "## Прочность"
         }
         .to_owned();
-        let (header_sf, header_bm) = if language.contains("en") {
+        let (header_sf, header_bm) = if language == Lang::En {
             ("Share force".to_owned(), "Bending moment".to_owned())
         } else {
             (

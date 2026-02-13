@@ -31,11 +31,11 @@ impl LeverDiagram {
     //
     pub fn from(
         parent: &Dbg, 
-        language: &String, 
+        language: Lang, 
         target: &[(f64, f64, f64, f64)], 
         result: &[(f64, f64)]
     ) -> Self {
-        let (title, header) = if language.contains("en") {
+        let (title, header) = if language == Lang::En {
             (
                 "Stability curve",
                 vec![

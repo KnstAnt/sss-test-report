@@ -19,7 +19,7 @@ impl Draught {
         ship_wide: f64,
     ) -> Result<Self, Error> {
         let dbg = Dbg::new(parent, "Draught");
-        let title = if language.contains("en") {
+        let title = if language == Lang::En {
             "Draft parameters"
         } else  {
             "Параметры посадки"
