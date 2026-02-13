@@ -1,7 +1,10 @@
 use super::unit::TableUnit;
-use crate::{content::{Content, misc::lang::Lang}, db::{criterion::CriteriaData, parameters::ParameterData}};
-use std::collections::HashMap;
+use crate::{
+    content::{misc::lang::Lang, Content},
+    db::{criterion::CriteriaData, parameters::ParameterData},
+};
 use sal_core::{dbg::Dbg, error::Error};
+use std::collections::HashMap;
 
 //
 pub struct Template {
@@ -12,12 +15,7 @@ pub struct Template {
 }
 //
 impl Template {
-    pub fn new(
-        dbg: Dbg,
-        header: &[&str], 
-        data: &[TableUnit], 
-        ship_wide: f64
-    ) -> Self {
+    pub fn new(dbg: Dbg, header: &[&str], data: &[TableUnit], ship_wide: f64) -> Self {
         Self {
             dbg,
             header: header.iter().map(|s| s.to_string()).collect(),
@@ -29,7 +27,7 @@ impl Template {
     pub fn from(
         dbg: Dbg,
         language: &Lang,
-        data: &mut [TableUnit], 
+        data: &mut [TableUnit],
         ship_wide: f64,
     ) -> Result<Self, Error> {
         let header = if *language == Lang::En {
@@ -58,19 +56,15 @@ impl Template {
             ]
         }
         .to_owned();
-        let (src, trg) = if language == Lang::En { ("ширины судна", "breadth") } else { ("breadth", "ширины судна") };
+        let (src, trg) = if *language == Lang::En {
+            ("ширины судна", "breadth")
+        } else {
+            ("breadth", "ширины судна")
+        };
         data.into_iter().for_each(|v| {
-                v.limit_percent = v.limit_percent.take().map(|v| {
-                    v.replace(src, trg)
-                });
-            }
-        );
-        Ok(Self::new(
-            dbg,
-            &header,
-            &data,
-            ship_wide,
-        ))
+            v.limit_percent = v.limit_percent.take().map(|v| v.replace(src, trg));
+        });
+        Ok(Self::new(dbg, &header, &data, ship_wide))
     }
     //
     pub fn from_parameters(
@@ -87,17 +81,12 @@ impl Template {
                 data.push(row);
             }
         }
-        Self::from(
-            dbg,
-            language,
-            &mut data,
-            ship_wide,
-        )
+        Self::from(dbg, language, &mut data, ship_wide)
     }
     //
     pub fn from_criterion(
         parent: &Dbg,
-        language: &String,
+        language: &Lang,
         target: &Vec<Vec<String>>,
         result: &HashMap<i32, CriteriaData>,
         ship_wide: f64,
@@ -109,12 +98,7 @@ impl Template {
                 data.push(row);
             }
         }
-        Self::from(
-            dbg,
-            language,
-            &mut data,
-            ship_wide,
-        )
+        Self::from(dbg, language, &mut data, ship_wide)
     }
 }
 //

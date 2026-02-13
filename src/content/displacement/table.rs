@@ -1,4 +1,4 @@
-use sal_core::{dbg::Dbg, error::Error};
+use sal_core::dbg::Dbg;
 
 pub struct Table {
     dbg: Dbg,
@@ -20,7 +20,7 @@ impl Table {
         }
     }
     //
-    pub fn to_string(self) -> Result<String, Error> {
+    pub fn to_string(self) -> String {
         let mut string = self
             .header
             .iter()
@@ -30,6 +30,6 @@ impl Table {
             + &(0..self.header.len()).map(|_| "|---").collect::<String>()
             + "|\n";
         self.content.iter().for_each(|v| string += &(v.iter().map(|v| format!("|{v}")).collect::<String>() + "|\n") );
-        Ok(string + "  \n")
+        string + "  \n"
     }
 }

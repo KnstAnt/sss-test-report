@@ -3,6 +3,8 @@ use template_max::TemplateMax;
 use sal_core::{dbg::Dbg, error::Error};
 
 
+use crate::content::misc::lang::Lang;
+
 use super::Content;
 
 pub mod table;
@@ -41,7 +43,7 @@ impl Strength {
     //
     pub fn new_named(
         parent: &Dbg,
-        language: &String,
+        language: &Lang,
         // x, sf, bm
         result: &[(f64, f64, f64)],
         // x, fr, sf, bm, limit_%
@@ -52,13 +54,13 @@ impl Strength {
         limit: &[(f64, f64, f64, f64, f64)],
     ) -> Self {
         let dbg = Dbg::new(parent, "Strength");
-        let title = if language == Lang::En {
+        let title = if *language == Lang::En {
             "## Strength"
         } else {
             "## Прочность"
         }
         .to_owned();
-        let (header_sf, header_bm) = if language == Lang::En {
+        let (header_sf, header_bm) = if *language == Lang::En {
             ("Share force".to_owned(), "Bending moment".to_owned())
         } else {
             (
@@ -137,7 +139,7 @@ impl Strength {
             title,
             Template::new(
                 &dbg,
-                language.clone(),
+                language,
                 header_sf,
                 "SF".to_owned(),
                 &sf_result,
@@ -147,7 +149,7 @@ impl Strength {
             shear_force_max,
             Template::new(
                 &dbg,
-                language.clone(),
+                language,
                 header_bm,
                 "BM".to_owned(),
                 &bm_result,

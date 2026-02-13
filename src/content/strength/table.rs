@@ -1,5 +1,7 @@
 use sal_core::{dbg::Dbg, error::Error};
 
+use crate::content::misc::lang::Lang;
+
 pub struct Table {
     dbg: Dbg,
     header: Vec<String>,
@@ -17,8 +19,8 @@ impl Table {
         }
     }
     //
-    pub fn from(parent: &Dbg, language: Lang, name: &str, values: &[(i32, f64, f64, f64, f64, f64)]) -> Self {
-        let header = if language == Lang::En {
+    pub fn from(parent: &Dbg, language: &Lang, name: &str, values: &[(i32, f64, f64, f64, f64, f64)]) -> Self {
+        let header = if *language == Lang::En {
             vec![
                 "Fr".to_string(),
                 format!("${name}_{{min}}$"),

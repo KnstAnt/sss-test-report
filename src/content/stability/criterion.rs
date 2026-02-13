@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use sal_core::{dbg::Dbg, error::Error};
-use crate::{content::Content, db::criterion::CriteriaData};
+use crate::{content::{Content, misc::lang::Lang}, db::criterion::CriteriaData};
 use super::template::Template;
 
 
@@ -13,13 +13,13 @@ pub struct Criterion {
 impl Criterion {
     pub fn from(
         parent: &Dbg,
-        language: &String,
+        language: &Lang,
         target: &Vec<Vec<String>>,
         result: &HashMap<i32, CriteriaData>,
         ship_wide: f64,
     ) -> Result<Self, Error> {
         let dbg = Dbg::new(parent, "Criterion");
-        let title = if language == Lang::En {
+        let title = if *language == Lang::En {
             "Criteria"
         } else  {
             "Критерии"

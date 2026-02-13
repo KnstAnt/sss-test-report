@@ -1,11 +1,12 @@
 use sal_core::{dbg::Dbg, error::Error};
 
 use crate::content::Content;
+use crate::content::misc::lang::Lang;
 use crate::content::misc::{Curve, ICurve};
 //
 pub struct Template {
     dbg: Dbg, 
-    language: String,
+    language: Lang,
     header: String,
     short_name: String,
     result: Vec<(f64, f64)>, //x, value
@@ -17,7 +18,7 @@ impl Template {
     //
     pub fn new( 
         parent: &Dbg, 
-        language: String,
+        language: &Lang,
         header: String,
         short_name: String,
         result: &[(f64, f64)],
@@ -26,7 +27,7 @@ impl Template {
     ) -> Self {
         Self {
             dbg: Dbg::new(parent, "Template"),
-            language,
+            language: language.clone(),
             header,
             short_name,
             result: Vec::from(result),

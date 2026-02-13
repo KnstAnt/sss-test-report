@@ -1,5 +1,7 @@
 use sal_core::{dbg::Dbg, error::Error};
 
+use crate::content::misc::lang::Lang;
+
 pub struct TableMax {
     dbg: Dbg,
     header: Vec<String>,
@@ -23,11 +25,11 @@ impl TableMax {
     //
     pub fn new_header(
         parent: &Dbg,
-        language: &String,
+        language: &Lang,
         name: &str,
         values: &[(String, f64, f64, f64, f64, f64)],
     ) -> Self {
-        let header = if language == Lang::En {
+        let header = if *language == Lang::En {
             vec![
                 "Parameter".to_string(),
                 format!("${name}_{{min}}$"),

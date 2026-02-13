@@ -1,4 +1,4 @@
-use crate::content::misc::{Curve, ICurve};
+use crate::content::misc::{lang::Lang, Curve, ICurve};
 use sal_core::{dbg::Dbg, error::Error};
 
 pub struct LeverDiagram {
@@ -31,11 +31,11 @@ impl LeverDiagram {
     //
     pub fn from(
         parent: &Dbg, 
-        language: Lang, 
+        language: &Lang, 
         target: &[(f64, f64, f64, f64)], 
         result: &[(f64, f64)]
     ) -> Self {
-        let (title, header) = if language == Lang::En {
+        let (title, header) = if *language == Lang::En {
             (
                 "Stability curve",
                 vec![

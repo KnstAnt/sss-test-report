@@ -3,7 +3,7 @@ use criterion::Criterion;
 use lever_diagram::LeverDiagram;
 use parameters::Parameters;
 use sal_core::{dbg::Dbg, error::Error};
-use crate::{db::{criterion::CriteriaData, parameters::ParameterData}};
+use crate::{content::misc::lang::Lang, db::{criterion::CriteriaData, parameters::ParameterData}};
 use super::Content;
 
 pub mod unit;
@@ -40,7 +40,7 @@ impl Stability {
     //
     pub fn new_named(
         parent: &Dbg,
-        language: &String,
+        language: &Lang,
         criteria_target: &Vec<Vec<String>>,
         criteria_result: &HashMap<i32, CriteriaData>, // criterion_id, value        
         parameters_target: &Vec<Vec<String>>,
@@ -50,7 +50,7 @@ impl Stability {
         lever_diagram_result: &[(f64, f64)],
     ) -> Result<Self, Error> {
         let dbg = Dbg::new(parent, "Stability");
-        let title = if language == Lang::En {
+        let title = if *language == Lang::En {
             "## Stability"
         } else {
             "## Остойчивость"

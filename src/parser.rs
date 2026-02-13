@@ -1,12 +1,19 @@
 //! Класс-коллекция таблиц. Проверяет данные и выполняет их запись
+use crate::content::misc::lang::Lang;
 use crate::content::stability::Stability;
 use crate::content::strength::Strength;
 //use crate::content::general::General;
 //use crate::content::list_of_calculations::ListOfCalculations;
 use crate::content::Content;
 use crate::db::api::{ApiClient, Db};
+use crate::db::bulk_cargo::BulkCargoData;
+use crate::db::bulkhead::BulkheadData;
+use crate::db::cargo::CargoData;
+use crate::db::container::ContainerData;
+use crate::db::criterion::CriteriaData;
 use crate::db::parameters::ParameterData;
 use crate::db::strength_result::StrengthResultData;
+use crate::db::tank::TankData;
 //use crate::formatter::Page;
 use calamine::{Range, open_workbook_auto};
 use calamine::{Data, Reader};
@@ -17,20 +24,27 @@ use std::collections::HashMap;
 pub struct Report {
     dbg: Dbg,
     db: Db,
-    language: String,
+    language: Lang,
     general: HashMap<String, String>,
     ship_wide: Option<f64>,
     strength_target: Vec<(f64, i32, f64, f64, f64)>, //x, fr, SF, BM, limit_%
     strength_target_max: Vec<(String, f64, f64, f64)>, // name, x, value, limit_%
-    strength_result: Vec<StrengthResultData>,           //x, SF, BM
+    strength_result: Vec<StrengthResultData>,
     lever_diagram_result: Vec<(f64, f64)>,           //angle, level
     lever_diagram_target: Vec<(f64, f64, f64, f64)>, //angle, level, limit_%, limit_abs
     criteria_target: Vec<Vec<String>>,
     displacement_target: Vec<Vec<String>>,
     draught_target: Vec<Vec<String>>,
     parameters_target: Vec<Vec<String>>,
-    criteria_result: HashMap<i32, f64>, // criterion_id, value
+    criteria_result: HashMap<i32, CriteriaData>, // criterion_id, value
     parameters_result: HashMap<i32, ParameterData>,// parameter_id, value
+    ballast_tanks: Vec<TankData>,
+    stores_tanks: Vec<TankData>,
+    stores: Vec<CargoData>,
+    bulkheads: Vec<BulkheadData>,
+    bulk_cargo: Vec<BulkCargoData>,
+    container: Vec<ContainerData>,
+    general_cargo: Vec<CargoData>,
 }
 //
 impl Report {
@@ -39,7 +53,7 @@ impl Report {
         parent: &Dbg, 
         ship_id: String,
         project_id: String,
-        language: String, 
+        language: &str,
         api_client: ApiClient,
     ) -> Self {
         let dbg = Dbg::new(parent, "Report");
@@ -52,7 +66,7 @@ impl Report {
                 language.clone(),
                 api_client,
             ),
-            language,
+            language: Lang::from_str(language),
             general: HashMap::new(),
             ship_wide: None,
             strength_target: Vec::new(),
@@ -66,6 +80,13 @@ impl Report {
             parameters_target: Vec::new(),
             criteria_result: HashMap::new(),
             parameters_result: HashMap::new(),
+            ballast_tanks: Vec::new(),
+            stores_tanks: Vec::new(),
+            stores: Vec::new(),
+            bulkheads: Vec::new(),
+            bulk_cargo: Vec::new(),
+            container: Vec::new(),
+            general_cargo: Vec::new(),
         }
     }
     //
@@ -232,12 +253,7 @@ impl Report {
                 &self.displacement_target,
                 &self.parameters_result,
                 self.ship_wide.unwrap(),
-            crate::content::displacement::summary::Summary::from(
-
-                &self.language,
-                &[2, 32, 56, 12, 1, 52],
-                &self.,
-            )?,
+            self.,
             crate::content::displacement::tank::Tank::from(
                 &self.language,
                 &self.ballast_tanks

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use sal_core::{dbg::Dbg, error::Error};
-use crate::{content::Content, db::parameters::ParameterData};
+use crate::{content::misc::lang::Lang, content::Content, db::parameters::ParameterData};
 use super::template::Template;
 
 
@@ -13,13 +13,13 @@ pub struct Parameters {
 impl Parameters {
     pub fn from(
         parent: &Dbg,
-        language: &String,
+        language: &Lang,
         target: &Vec<Vec<String>>,
         result: &HashMap<i32, ParameterData>,
         ship_wide: f64,
     ) -> Result<Self, Error> {
         let dbg = Dbg::new(parent, "Template");
-        let title = if language == Lang::En {
+        let title = if *language == Lang::En {
             "Stability parameters"
         } else {
             "Параметры остойчивости"

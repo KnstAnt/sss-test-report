@@ -1,12 +1,13 @@
 use sal_core::{dbg::Dbg, error::Error};
 
 use crate::content::Content;
+use crate::content::misc::lang::Lang;
 use crate::content::misc::{Curve, ICurve};
 //
 pub struct TemplateMax {
     dbg: Dbg,
     name: String,
-    language: String,
+    language: Lang,
     result: Vec<(f64, f64)>, //x, value
     target_abs: (f64, f64, f64), //x, value, limit_%
     target_percent: (f64, f64, f64), //x, value, limit_%
@@ -18,7 +19,7 @@ impl TemplateMax {
     pub fn new( 
         parent: &Dbg, 
         name: String,
-        language: &String,
+        language: &Lang,
         result: &[(f64, f64)],
         target_abs: (f64, f64, f64),
         target_percent: (f64, f64, f64),
@@ -46,7 +47,7 @@ impl Content for TemplateMax {
         let limit_max = Curve::new_linear(&limit_max)?; 
         let mut values = Vec::new();
         let x = self.target_abs.0;
-        let (value_str, percent_str) = if self.language.contains("en") {
+        let (value_str, percent_str) = if self.language == Lang::En {
             ("Maximum value", "Maximum percent")
         } else {
             ("Максимальное значение", "Максимальный процент")

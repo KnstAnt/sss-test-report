@@ -42,12 +42,8 @@ impl Bulkhead {
 //
 impl Content for Bulkhead {
     //
-    fn table(self) -> Result<String, Error> {
-        self.table.to_string()
-    }
-    //
-    fn title(&self) -> String {
-        self.title.clone()        
+    fn to_string(self) -> Result<String, Error> {
+        Ok(format!("{}\n\n{}", self.title, self.table.to_string()))
     }
 }
 

@@ -23,7 +23,7 @@ pub struct Db {
     dbg: Dbg,
     ship_id: String,
     project_id: String,
-    language: String, 
+    language: &Lang, 
     api_client: ApiClient,
 }
 //
@@ -32,7 +32,7 @@ impl Db {
         parent: &Dbg,
         ship_id: String,
         project_id: String,
-        language: String, // "ru" - russian (default) / "en" - english
+        language: &Lang, // "ru" - russian (default) / "en" - english
         api_client: ApiClient,        
     ) -> Self {
         let dbg = Dbg::new(parent, "ModelCached");
