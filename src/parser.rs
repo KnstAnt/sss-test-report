@@ -238,53 +238,20 @@ impl Report {
         let error = Error::new(&self.dbg, "write");
         println!("Parser write_to_file begin");
     //    dbg!(&self.parameters_target);
-   /*     let mut content = crate::content::displacement::Displacement::new(
-            &self.dbg,
-            &self.language,           
-            &self.displacement_target,
-            &self.parameters_result,
-            self.ship_wide.unwrap(),
-        )?.to_string().map_err(|e| format!("Parser write Displacement error:{}", e))? + "\n";
-*/
-        let content
         let mut content = crate::content::displacement::Displacement::new_named(
             &self.dbg,
             &self.language,
-                &self.displacement_target,
-                &self.parameters_result,
-                self.ship_wide.unwrap(),
-            self.,
-            crate::content::displacement::tank::Tank::from(
-                &self.language,
-                &self.ballast_tanks
-            )?,
-            crate::content::displacement::tank::Tank::from(
-                &self.language,
-                &self.stores_tanks
-            )?,
-            crate::content::displacement::cargo::Cargo::from(
-                &self.language,
-                &self.stores
-            )?,
-            crate::content::displacement::bulkhead::Bulkhead::from(
-                &self.language,
-                &self.bulkheads
-            )?,
-            crate::content::displacement::bulk_cargo::BulkCargo::from(
-                &self.language,
-                &self.bulk_cargo
-            )?,
-            crate::content::displacement::container::Container::from(
-                &self.language,
-                &self.container
-            )?,
-            crate::content::displacement::cargo::Cargo::from(
-                &self.language,
-                &self.general_cargo
-            )?,
-        )
-        .to_string()?;
-
+            &self.displacement_target,
+            &self.parameters_result,
+            self.ship_wide.unwrap(),
+            &self.ballast_tanks,            
+            &self.stores_tanks,
+            &self.stores,
+            &self.bulkheads,
+            &self.bulk_cargo,
+            &self.container,
+            &self.general_cargo,
+            )?.to_string()?;
         content += &(crate::content::stability::draught::Draught::from(
             &self.dbg,
             &self.language,

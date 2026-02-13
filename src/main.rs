@@ -22,12 +22,11 @@ fn main() {
     info!("starting up");
     let conf = "./config.yaml";
     let conf = Conf::new(&dbg, conf);
-    let language = "ru".to_owned();
     let mut report = Report::new(
         &dbg,
         conf.api.params.ship_id.clone(),
         conf.api.params.project_id.clone(),
-        language.clone(),
+        "ru",
         ApiClient::new(
             &dbg,
             conf.api.address.database.clone(),
@@ -59,12 +58,11 @@ fn main() {
         //       println!("{}", error.to_string());
         return;
     }
-    let language = "en".to_owned();
     let mut report = Report::new(
         &dbg,
         conf.api.params.ship_id.clone(),
         conf.api.params.project_id.clone(),
-        language.clone(),
+        "en",
         ApiClient::new(
             &dbg,
             conf.api.address.database.clone(),
