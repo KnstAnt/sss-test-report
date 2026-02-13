@@ -16,6 +16,7 @@ pub mod summary;
 mod table;
 
 pub struct Displacement {
+    dbg: Dbg,
     language: String, 
     summary: Summary,
     ballast_tank: Tank,
@@ -29,6 +30,7 @@ pub struct Displacement {
 //
 impl Displacement {
     pub fn new(    
+        parent: &Dbg,
         language: &String,
         summary: Summary,
         ballast_tank: Tank,
@@ -40,6 +42,7 @@ impl Displacement {
         general_cargo: Cargo,
     ) -> Self {
         Self {
+            dbg: Dbg::new(parent, "Table"),
             language: language.to_owned(),
             summary,
             ballast_tank,

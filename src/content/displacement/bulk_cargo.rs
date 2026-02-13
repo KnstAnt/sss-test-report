@@ -5,16 +5,18 @@ use sal_core::{dbg::Dbg, error::Error};
 use super::table::Table;
 
 pub struct BulkCargo {
+    dbg: Dbg,
     table: Table,
 }
 //
 impl BulkCargo {
     //
-    pub fn new(table: Table) -> Self {
-        Self { table }
+    pub fn new(dbg: Dbg, table: Table) -> Self {
+        Self { dbg, table }
     }
     //
-    pub fn from(language: &String, data: &[BulkCargoData]) -> Result<Self, Error> {
+    pub fn from(parent: &Dbg, language: &String, data: &[BulkCargoData]) -> Result<Self, Error> {
+        let dbg = Dbg::new(parent, "BulkCargo");
         let header = if language.contains("en") { 
             vec!["Name", "Weight", "x_g [m]", "y_g [m]", "z_g [m]", "Grain moment [tm]"]
         } else {
@@ -33,13 +35,13 @@ impl BulkCargo {
                 )
             })
             .collect::<Vec<Vec<String>>>();
-        Ok(Self::new(Table::new(&header, content)))
+        Ok(Self::new(dbg.clone(), Table::new(&dbg, &header, content)))
     }
 }
 //
 impl Content for BulkCargo {
     //
-    fn to_string(self) -> Result<String, crate::error::Error> {
+    fn to_string(self) -> Result<String, Error> {
         self.table.to_string()
     }
 }

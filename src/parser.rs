@@ -217,7 +217,7 @@ impl Report {
         let error = Error::new(&self.dbg, "write");
         println!("Parser write_to_file begin");
     //    dbg!(&self.parameters_target);
-        let mut content = crate::content::displacement::Displacement::from(
+        let mut content = crate::content::displacement::Displacement::new(
             &self.dbg,
             &self.language,           
             &self.displacement_target,

@@ -28,7 +28,7 @@ impl Parameters {
             dbg: dbg.clone(),
             title,
             table: Template::from_parameters(
-                dbg,
+                &dbg,
                 language,
                 target,
                 result,
@@ -40,7 +40,7 @@ impl Parameters {
 //
 impl Content for Parameters {
     //
-    fn to_string(self) -> Result<String, crate::error::Error> {
+    fn to_string(self) -> Result<String, Error> {
         Ok(format!("### {}\n\n", self.title) + &self.table.to_string()?)
     }
 }

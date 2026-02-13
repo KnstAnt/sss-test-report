@@ -40,7 +40,7 @@ impl Criterion {
 //
 impl Content for Criterion {
     //
-    fn to_string(self) -> Result<String, crate::error::Error> {
+    fn to_string(self) -> Result<String, Error> {
         Ok(format!("### {}\n\n", self.title) + &self.table.to_string()?)
     }
 }

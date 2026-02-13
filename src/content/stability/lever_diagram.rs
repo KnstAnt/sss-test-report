@@ -66,7 +66,7 @@ impl LeverDiagram {
         Self::new(parent, title, &header, target, result)
     }
     //
-    pub fn to_string(self) -> Result<String, crate::error::Error> {
+    pub fn to_string(self) -> Result<String, Error> {
         let header = self
             .header
             .iter()

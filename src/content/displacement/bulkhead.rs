@@ -5,16 +5,18 @@ use sal_core::{dbg::Dbg, error::Error};
 use super::table::Table;
 
 pub struct Bulkhead {
+    dbg: Dbg,
     table: Table,
 }
 //
 impl Bulkhead {
     //
-    pub fn new(table: Table) -> Self {
-        Self { table }
+    pub fn new(dbg: Dbg, table: Table) -> Self {
+        Self { dbg, table }
     }
     //
-    pub fn from(language: &String, data: &[BulkheadData]) -> Result<Self, Error> {
+    pub fn from(parent: &Dbg, language: &String, data: &[BulkheadData]) -> Result<Self, Error> {
+        let dbg = Dbg::new(parent, "Bulkhead");
         let header = if language.contains("en") { 
             vec!["Name", "Position", "Weight", "x_g [m]", "y_g [m]", "z_g [m]",]
         } else {
@@ -33,13 +35,13 @@ impl Bulkhead {
                 )
             })
             .collect::<Vec<Vec<String>>>();
-        Ok(Self::new(Table::new(&header, content)))
+        Ok(Self::new(dbg.clone(), Table::new(&dbg, &header, content)))
     }
 }
 //
 impl Content for Bulkhead {
     //
-    fn to_string(self) -> Result<String, crate::error::Error> {
+    fn to_string(self) -> Result<String, Error> {
         self.table.to_string()
     }
 }
