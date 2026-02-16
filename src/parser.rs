@@ -24,7 +24,7 @@ use std::collections::HashMap;
 pub struct Report {
     dbg: Dbg,
     db: Db,
-    language: Lang,
+    language: String,
     general: HashMap<String, String>,
     ship_wide: Option<f64>,
     strength_target: Vec<(f64, i32, f64, f64, f64)>, //x, fr, SF, BM, limit_%
@@ -53,7 +53,7 @@ impl Report {
         parent: &Dbg, 
         ship_id: String,
         project_id: String,
-        language: &str,
+        language: String,
         api_client: ApiClient,
     ) -> Self {
         let dbg = Dbg::new(parent, "Report");
@@ -66,7 +66,7 @@ impl Report {
                 language.to_owned(),
                 api_client,
             ),
-            language: Lang::from_str(language),
+            language,
             general: HashMap::new(),
             ship_wide: None,
             strength_target: Vec::new(),
@@ -92,7 +92,7 @@ impl Report {
     //
     pub fn get_target(&mut self, path: &str, name: &str) -> Result<(), Error> {
         let error = Error::new(&self.dbg, "get_target");
-        let path = (path.to_owned() + "/" + name).replace("//", "/");
+        let path = (path.to_owned() + "/" + name + ".xlsx").replace("//", "/");
         let workbook: HashMap<String, Range<Data>> = open_workbook_auto(path.clone())
             .map_err(|err| error.pass_with(format!("open_workbook error!, {path}"), err.to_string()))?
             .worksheets()
@@ -254,9 +254,10 @@ impl Report {
         let error = Error::new(&self.dbg, "write");
         println!("Parser write_to_file begin");
     //    dbg!(&self.parameters_target);
+        let language = Lang::from_str(&self.language);
         let mut content = crate::content::displacement::Displacement::new_named(
             &self.dbg,
-            &self.language,
+            &language,
             &self.displacement_target,
             &self.parameters_result,
             self.ship_wide.unwrap(),
@@ -270,21 +271,21 @@ impl Report {
             )?.to_string()?;
         content += &(crate::content::stability::draught::Draught::from(
             &self.dbg,
-            &self.language,
+            &language,
             &self.draught_target,
             &self.parameters_result,
             self.ship_wide.unwrap(),
         )?.to_string().map_err(|e| error.pass(e))? + "\n");        
         content += &(Strength::new_named(
                 &self.dbg,
-                &self.language,
+                &language,
                 &self.strength_result,
                 &self.strength_target,
                 &self.strength_target_max,
             ).to_string().map_err(|e| error.pass(e))? + "\n"); 
         content += &(Stability::new_named(
             &self.dbg,
-            &self.language,
+            &language,
             &self.criteria_target,
             &self.criteria_result,
             &self.parameters_target,
@@ -293,7 +294,7 @@ impl Report {
             &self.lever_diagram_target,
             &self.lever_diagram_result,
         )?.to_string().map_err(|e| error.pass(e))? + "\n"); 
-        let path = (path.to_owned() + "/" + name).replace("//", "/");
+        let path = (path.to_owned() + "/" + name + "_" + &self.language + ".md").replace("//", "/");
         std::fs::write(format!("{}", path), content).expect("Unable to write {path}");
         std::thread::sleep(std::time::Duration::from_secs(1));
         println!("Parser write_to_file end");

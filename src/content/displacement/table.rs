@@ -30,6 +30,6 @@ impl Table {
             + &(0..self.header.len()).map(|_| "|---").collect::<String>()
             + "|\n";
         self.content.iter().for_each(|v| string += &(v.iter().map(|v| format!("|{v}")).collect::<String>() + "|\n") );
-        string + "  \n"
+        string
     }
 }

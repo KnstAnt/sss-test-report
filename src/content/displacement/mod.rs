@@ -110,9 +110,9 @@ impl Displacement {
     ) -> Result<Self, Error> {
         let dbg = Dbg::new(parent, "Displacement");
         let title = if *language == Lang::En {
-            "# Displacement"
+            "Displacement"
         } else {
-            "# Водоизмещение"
+            "Водоизмещение"
         }.to_owned();
         Ok(Self {
             dbg: dbg.clone(),
@@ -172,14 +172,14 @@ impl Displacement {
     //
     pub fn to_string(self) -> Result<String, Error> {
         Ok("# ".to_string() + &self.title + "\n\n" +
-            "## " + &self.summary.to_string()? + "\n\n" +
-            "## " + &self.ballast_tank.to_string()? + "\n\n" +
-            "## " + &self.stores_tank.to_string()? + "\n\n" +
-            "## " + &self.stores.to_string()? + "\n\n" +
-            "## " + &self.bulkhead.to_string()? + "\n\n" +
-            "## " + &self.bulk_cargo.to_string()? + "\n\n" +
-            "## " +  &self.container.to_string()? + "\n\n" +
-            "## " + &self.general_cargo.to_string()?
+            "## " + &self.summary.to_string()? + "\n" +
+            "## " + &self.ballast_tank.to_string()? + "\n" +
+            "## " + &self.stores_tank.to_string()? + "\n" +
+            "## " + &self.stores.to_string()? + "\n" +
+            "## " + &self.bulkhead.to_string()? + "\n" +
+            "## " + &self.bulk_cargo.to_string()? + "\n" +
+            "## " + &self.container.to_string()? + "\n" +
+            "## " + &self.general_cargo.to_string()? + "\n"
         )
     }
 }

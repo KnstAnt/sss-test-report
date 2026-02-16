@@ -61,7 +61,7 @@ impl Db {
                 FROM 
                     criterion_view
                 WHERE 
-                    language={} AND
+                    language='{}' AND
                     category_id = 1 AND
                     ship_id={} AND 
                     project_id IS NOT DISTINCT FROM {}
@@ -88,7 +88,7 @@ impl Db {
                 FROM 
                     parameter_view
                 WHERE 
-                    language={} AND
+                    language='{}' AND
                     ship_id={} AND 
                     project_id IS NOT DISTINCT FROM {}
                 ORDER BY
@@ -191,7 +191,7 @@ impl Db {
                     FROM 
                         liquid_cargo_view 
                     WHERE 
-                        compartment_purpose='ballast_tank' AND language={} AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
+                        compartment_purpose='ballast_tank' AND language='{}' AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
                     self.language,
                     self.ship_id,
                     self.project_id,
@@ -218,7 +218,7 @@ impl Db {
                     FROM 
                         liquid_cargo_view 
                     WHERE 
-                        assigment_context = 'stores' AND language={} AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
+                        assigment_context = 'stores' AND language='{}' AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
                     self.language,
                     self.ship_id,
                     self.project_id,
@@ -243,7 +243,7 @@ impl Db {
                     FROM 
                         unit_cargo_view 
                     WHERE 
-                        assigment_context = 'stores' AND language={} AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
+                        assigment_context = 'stores' AND language='{}' AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
                     self.language,
                     self.ship_id,
                     self.project_id,
@@ -269,7 +269,7 @@ impl Db {
                     FROM 
                         bulkhead_view
                     WHERE 
-                        language={} AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
+                        language='{}' AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
                     self.language, self.ship_id, self.project_id,
                 ))
                 .map_err(|e| error.pass(e))?,
@@ -293,7 +293,7 @@ impl Db {
                     FROM 
                         bulk_cargo_view 
                     WHERE 
-                        language={} AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
+                        language='{}' AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
                     self.language, self.ship_id, self.project_id,
                 ))
                 .map_err(|e| error.pass(e))?,
@@ -309,7 +309,7 @@ impl Db {
                 .fetch(&format!(
                     "SELECT 
                         owner_code, \
-                        serial_code, \
+                        serial_number, \
                         check_digit, \
                         bay_number, \
                         row_number, \
@@ -321,7 +321,7 @@ impl Db {
                     FROM 
                         container_cargo_view
                     WHERE 
-                        language={} AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
+                        language='{}' AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
                     self.language, self.ship_id, self.project_id,
                 ))
                 .map_err(|e| error.pass(e))?,
@@ -344,7 +344,7 @@ impl Db {
                     FROM 
                         unit_cargo_view 
                     WHERE 
-                        assigment_context = 'cargo_load' AND language={} AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
+                        assigment_context = 'cargo_load' AND language='{}' AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
                     self.language, self.ship_id, self.project_id,
                 ))
                 .map_err(|e| error.pass(e))?,

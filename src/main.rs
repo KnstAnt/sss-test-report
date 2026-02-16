@@ -26,7 +26,7 @@ fn main() {
         &dbg,
         conf.api.params.ship_id.clone(),
         conf.api.params.project_id.clone(),
-        "ru",
+        "ru".to_owned(),
         ApiClient::new(
             &dbg,
             conf.api.address.database.clone(),
@@ -62,7 +62,7 @@ fn main() {
         &dbg,
         conf.api.params.ship_id.clone(),
         conf.api.params.project_id.clone(),
-        "en",
+        "en".to_owned(),
         ApiClient::new(
             &dbg,
             conf.api.address.database.clone(),
