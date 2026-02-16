@@ -1,11 +1,11 @@
 //! Функции для работы с БД
-use crate::db::serde_parser::IFromJson;
-use sal_core::{dbg::Dbg, error::Error};
 use super::bulk_cargo::BulkCargoDataArray;
 use super::bulkhead::BulkheadDataArray;
 use super::cargo::CargoDataArray;
 use super::container::ContainerDataArray;
 use super::criterion::CriteriaDataArray;
+use crate::db::serde_parser::IFromJson;
+use sal_core::{dbg::Dbg, error::Error};
 //use super::data::DataRowArray;
 use super::data::DataShipArray;
 use super::parameters::ParameterDataArray;
@@ -20,7 +20,7 @@ pub struct Db {
     dbg: Dbg,
     ship_id: String,
     project_id: String,
-    language: String, 
+    language: String,
     api_client: ApiClient,
 }
 //
@@ -29,8 +29,8 @@ impl Db {
         parent: &Dbg,
         ship_id: String,
         project_id: String,
-        language: String, 
-        api_client: ApiClient,        
+        language: String,
+        api_client: ApiClient,
     ) -> Self {
         let dbg = Dbg::new(parent, "ModelCached");
         Self {
@@ -51,13 +51,13 @@ impl Db {
             &self
                 .api_client
                 .fetch(&format!(
-                "SELECT 
+                    "SELECT 
                     id AS id, \
-                    title as name, \
-                    unit as unit, \
+                    title AS name, \
+                    unit AS unit, \
                     result AS result, \
                     target AS target, \
-                    state as state
+                    state AS state
                 FROM 
                     criterion_view
                 WHERE 
@@ -67,13 +67,9 @@ impl Db {
                     project_id IS NOT DISTINCT FROM {}
                 ORDER BY
                     id;",
-                    self.language,
-                    self.ship_id, 
-                    self.project_id,
+                    self.language, self.ship_id, self.project_id,
                 ))
-                .map_err(|e| {
-                    error.pass(e)
-                })?,
+                .map_err(|e| error.pass(e))?,
         )
         .map_err(|e| error.pass(e))
     }
@@ -84,11 +80,11 @@ impl Db {
             &self
                 .api_client
                 .fetch(&format!(
-                "SELECT 
-                    id as id, \
-                    title as name, \
-                    result as result, \
-                    unit as unit
+                    "SELECT 
+                    id AS id, \
+                    title AS name, \
+                    result AS result, \
+                    unit AS unit
                 FROM 
                     parameter_view
                 WHERE 
@@ -97,9 +93,7 @@ impl Db {
                     project_id IS NOT DISTINCT FROM {}
                 ORDER BY
                     id;",
-                    self.language,
-                    self.ship_id, 
-                    self.project_id,
+                    self.language, self.ship_id, self.project_id,
                 ))
                 .map_err(|e| error.pass(e))?,
         )
@@ -112,7 +106,7 @@ impl Db {
             &self
                 .api_client
                 .fetch(&format!(
-                "SELECT 
+                    "SELECT 
                   key, \
                   value
                 FROM 
@@ -121,12 +115,9 @@ impl Db {
                   key='MouldedBreadth' 
                   AND ship_id={} 
                   AND project_id IS NOT DISTINCT FROM {}",
-                self.ship_id,
-                self.project_id,
-            ))
-                .map_err(|e| {
-                    error.pass(e)
-                })?,
+                    self.ship_id, self.project_id,
+                ))
+                .map_err(|e| error.pass(e))?,
         )
         .map_err(|e| error.pass(e))
     }
@@ -138,17 +129,17 @@ impl Db {
                 .api_client
                 .fetch(&format!(
                     "SELECT 
-                        r.frame_x as x, \
-                        r.value_shear_force as sf, \
-                        r.value_bending_moment as bm, \
-                        r.limit_low_shear_force as sf_limit_low, \
-                        r.limit_high_shear_force as sf_limit_high, \
-                        r.percent_shear_force as sf_percent, \
-                        r.status_shear_force as sf_status, \
-                        r.limit_low_bending_moment as bm_limit_low, \
-                        r.limit_high_bending_moment as bm_limit_high, \
-                        r.percent_bending_moment as bm_percent, \
-                        r.status_bending_moment as bm_status
+                        r.frame_x AS x, \
+                        r.value_shear_force AS sf, \
+                        r.value_bending_moment AS bm, \
+                        r.limit_low_shear_force AS sf_limit_low, \
+                        r.limit_high_shear_force AS sf_limit_high, \
+                        r.percent_shear_force AS sf_percent, \
+                        r.status_shear_force AS sf_status, \
+                        r.limit_low_bending_moment AS bm_limit_low, \
+                        r.limit_high_bending_moment AS bm_limit_high, \
+                        r.percent_bending_moment AS bm_percent, \
+                        r.status_bending_moment AS bm_status
                     FROM
                         result_strength_force_and_moment AS r
                     WHERE 
@@ -157,7 +148,7 @@ impl Db {
                     ORDER BY x;",
                     self.ship_id, self.project_id,
                 ))
-                .map_err(|e| error.pass( e))?,
+                .map_err(|e| error.pass(e))?,
         )
         .map_err(|e| error.pass(e))?;
         Ok(strength_result)
@@ -176,12 +167,9 @@ impl Db {
                       stability_diagram 
                     WHERE 
                       ship_id={} AND project_id IS NOT DISTINCT FROM {};",
-                    self.ship_id,
-                    self.project_id,
+                    self.ship_id, self.project_id,
                 ))
-                .map_err(|e| {
-                    error.pass( e)
-                })?,
+                .map_err(|e| error.pass(e))?,
         )
         .map_err(|e| error.pass(e))?
         .data())
@@ -194,16 +182,16 @@ impl Db {
                 .api_client
                 .fetch(&format!(
                     "SELECT 
-                        {} as name, \
-                        mass, \
-                        mass_shift_x as x_g, \
-                        mass_shift_y as y_g, \
-                        mass_shift_z as z_g, \
-                        m_f_s_x as f_sx 
+                        space_name AS name, \
+                        weight AS mass, \
+                        centre_of_gravity_x AS x_g, \
+                        centre_of_gravity_y AS y_g, \
+                        centre_of_gravity_z AS z_g, \
+                        trans_moment_of_inertia AS f_sx 
                     FROM 
-                        compartment 
+                        liquid_cargo_view 
                     WHERE 
-                        category_id=2 AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
+                        compartment_purpose='ballast_tank' AND language={} AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
                     self.language,
                     self.ship_id,
                     self.project_id,
@@ -221,16 +209,16 @@ impl Db {
             &self.api_client
                 .fetch(&format!(
                     "SELECT 
-                        {} as name, \
-                        mass, \
-                        mass_shift_x as x_g, \
-                        mass_shift_y as y_g, \
-                        mass_shift_z as z_g, \
-                        m_f_s_x as f_sx 
+                        space_name AS name, \
+                        weight AS mass, \
+                        centre_of_gravity_x AS x_g, \
+                        centre_of_gravity_y AS y_g, \
+                        centre_of_gravity_z AS z_g, \
+                        trans_moment_of_inertia AS f_sx 
                     FROM 
-                        compartment 
+                        liquid_cargo_view 
                     WHERE 
-                        category_id>=3 AND category_id<=8 AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
+                        assigment_context = 'stores' AND language={} AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
                     self.language,
                     self.ship_id,
                     self.project_id,
@@ -247,16 +235,18 @@ impl Db {
                 .api_client
                 .fetch(&format!(
                     "SELECT 
-                        name as name, \
-                        mass, \
-                        mass_shift_x as x_g, \
-                        mass_shift_y as y_g, \
-                        mass_shift_z as z_g
+                        cargo_name AS name, \
+                        weight AS mass, \
+                        centre_of_gravity_x AS x_g, \
+                        centre_of_gravity_y AS y_g, \
+                        centre_of_gravity_z AS z_g
                     FROM 
-                        cargo 
+                        unit_cargo_view 
                     WHERE 
-                        category_id=9 AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
-                    self.ship_id, self.project_id,
+                        assigment_context = 'stores' AND language={} AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
+                    self.language,
+                    self.ship_id,
+                    self.project_id,
                 ))
                 .map_err(|e| error.pass(e))?,
         )
@@ -270,24 +260,19 @@ impl Db {
                 .api_client
                 .fetch(&format!(
                     "SELECT 
-                        b.{} as name, \
-                        bp.{} as position, \
-                        b.mass, \
-                        bp.mass_shift_x as x_g, \
-                        bp.mass_shift_y as y_g, \
-                        bp.mass_shift_z as z_g
+                        name AS name, \
+                        space_name AS position, \
+                        weight AS mass, \
+                        centre_of_gravity_x AS x_g, \
+                        centre_of_gravity_y AS y_g, \
+                        centre_of_gravity_z AS z_g
                     FROM 
-                        bulkhead as b
-                    JOIN 
-                        bulkhead_place as bp ON b.id = bp.bulkhead_id
+                        bulkhead_view
                     WHERE 
-                        b.ship_id={} AND b.project_id IS NOT DISTINCT FROM {};",
-                            self.language,
-                            self.language,
-                            self.ship_id,
-                            self.project_id,
-                        ))
-                        .map_err(|e| error.pass(e))?,
+                        language={} AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
+                    self.language, self.ship_id, self.project_id,
+                ))
+                .map_err(|e| error.pass(e))?,
         )
         .map_err(|e| error.pass(e))
     }
@@ -299,19 +284,17 @@ impl Db {
                 .api_client
                 .fetch(&format!(
                     "SELECT 
-                        {} as name, \
-                        mass, \
-                        mass_shift_x as x_g, \
-                        mass_shift_y as y_g, \
-                        mass_shift_z as z_g, \
-                        grain_moment
+                        cargo_name AS name, \
+                        weight AS mass, \
+                        centre_of_gravity_x AS x_g, \
+                        centre_of_gravity_y AS y_g, \
+                        centre_of_gravity_z AS z_g, \
+                        allocated_shifting_moment AS grain_moment
                     FROM 
-                        hold_compartment 
+                        bulk_cargo_view 
                     WHERE 
-                        ship_id={} AND project_id IS NOT DISTINCT FROM {};",
-                    self.language,
-                    self.ship_id,
-                    self.project_id,
+                        language={} AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
+                    self.language, self.ship_id, self.project_id,
                 ))
                 .map_err(|e| error.pass(e))?,
         )
@@ -325,23 +308,21 @@ impl Db {
                 .api_client
                 .fetch(&format!(
                     "SELECT 
-                        c.owner_code as owner_code, \
-                        c.serial_code as serial_code, \
-                        c.check_digit, \
-                        cs.bay_number as bay_number, \
-                        cs.row_number as row_number, \
-                        cs.tier_number as tier_number, \
-                        c.gross_mass as mass, \
-                        (cs.bound_x1 + (cs.bound_x2 - cs.bound_x1) / 2) AS x_g, \
-                        (cs.bound_y1 + (cs.bound_y2 - cs.bound_y1) / 2) AS y_g, \
-                        (cs.bound_z1 + (cs.bound_z2 - cs.bound_z1) / 2) AS z_g
+                        owner_code, \
+                        serial_code, \
+                        check_digit, \
+                        bay_number, \
+                        row_number, \
+                        tier_number, \
+                        weight AS mass, \
+                        centre_of_gravity_x AS x_g, \
+                        centre_of_gravity_y AS y_g, \
+                        centre_of_gravity_z AS z_g
                     FROM 
-                        container as c
-                    JOIN 
-                        container_slot as cs ON cs.container_id = c.id
+                        container_cargo_view
                     WHERE 
-                        c.ship_id={} AND c.project_id IS NOT DISTINCT FROM {};",
-                    self.ship_id, self.project_id,
+                        language={} AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
+                    self.language, self.ship_id, self.project_id,
                 ))
                 .map_err(|e| error.pass(e))?,
         )
@@ -349,26 +330,24 @@ impl Db {
     }
     //
     pub fn get_general_cargo(&mut self) -> Result<CargoDataArray, Error> {
-        let error = Error::new(&self.dbg, "get_container");
+        let error = Error::new(&self.dbg, "get_general_cargo");
         CargoDataArray::parse(
             &self
                 .api_client
                 .fetch(&format!(
                     "SELECT 
-                        name as name, \
-                        mass, \
-                        mass_shift_x as x_g, \
-                        mass_shift_y as y_g, \
-                        mass_shift_z as z_g
+                        cargo_name AS name, \
+                        weight AS mass, \
+                        centre_of_gravity_x AS x_g, \
+                        centre_of_gravity_y AS y_g, \
+                        centre_of_gravity_z AS z_g
                     FROM 
-                        cargo 
+                        unit_cargo_view 
                     WHERE 
-                        category_id=14 AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
-                    self.ship_id, self.project_id,
+                        assigment_context = 'cargo_load' AND language={} AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
+                    self.language, self.ship_id, self.project_id,
                 ))
-                .map_err(|e| {
-                    error.pass(e)
-                })?,
+                .map_err(|e| error.pass(e))?,
         )
         .map_err(|e| error.pass(e))
     }
