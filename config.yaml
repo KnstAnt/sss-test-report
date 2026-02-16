@@ -8,7 +8,6 @@ api:
     params:
         ship_id: "2"
         project_id: NULL
-        language: "en"
 #
 # API params
 data:
