@@ -51,7 +51,7 @@ impl Db {
             &self
                 .api_client
                 .fetch(&format!(
-                    "SELECT 
+                "SELECT 
                     id AS id, \
                     title AS name, \
                     unit AS unit, \
@@ -80,7 +80,7 @@ impl Db {
             &self
                 .api_client
                 .fetch(&format!(
-                    "SELECT 
+                "SELECT 
                     id AS id, \
                     title AS name, \
                     result AS result, \
@@ -106,7 +106,7 @@ impl Db {
             &self
                 .api_client
                 .fetch(&format!(
-                    "SELECT 
+                "SELECT 
                   key, \
                   value
                 FROM 
@@ -243,7 +243,7 @@ impl Db {
                     FROM 
                         unit_cargo_view 
                     WHERE 
-                        assigment_context = 'stores' AND language='{}' AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
+                        assigment_context = 'stores' AND cargo_type != 'grain_bulkhead' AND language='{}' AND ship_id={} AND project_id IS NOT DISTINCT FROM {};",
                     self.language,
                     self.ship_id,
                     self.project_id,
