@@ -162,7 +162,7 @@ impl Db {
                 .fetch(&format!(
                     "SELECT 
                       angle, \
-                      value_dso 
+                      raw_value_dso AS value_dso
                     FROM 
                       stability_diagram 
                     WHERE 
