@@ -28,6 +28,7 @@ enum Title {
     BulkCargo,
     Containers,
     GeneralCargo,
+    Icing,
 }
 //
 impl Title {
@@ -49,6 +50,8 @@ impl Title {
             (Self::Containers, Lang::Ru) => "Контейнеры",
             (Self::GeneralCargo, Lang::En) => "GeneralCargo",
             (Self::GeneralCargo, Lang::Ru) => "Генеральный груз",
+            (Self::Icing, Lang::En) => "Icing",
+            (Self::Icing, Lang::Ru) => "Обледенение",
         }.to_owned()
     }
 }
@@ -142,7 +145,7 @@ impl Displacement {
             )?,
             icing: crate::content::displacement::icing::Icing::from(
                 &dbg,
-                Title::GeneralCargo.val(language),
+                Title::Icing.val(language),
                 language, 
                 parameters_result,
             )?, 
