@@ -1,24 +1,24 @@
+mod tank;
+mod cargo;
+mod bulkhead;
+mod bulk_cargo;
+mod container;
+mod summary;
+mod icing;
+mod table;
 
 use std::collections::HashMap;
-
 use bulk_cargo::BulkCargo;
 use bulkhead::Bulkhead;
 use cargo::Cargo;
 use container::Container;
 use summary::Summary;
 use tank::Tank;
+use icing::Icing;
 use sal_core::{dbg::Dbg, error::Error};
 use crate::{content::misc::lang::Lang, db::{bulk_cargo::BulkCargoData, bulkhead::BulkheadData, cargo::CargoData, container::ContainerData, parameters::ParameterData, tank::TankData}};
-
 use super::Content;
-pub mod tank;
-pub mod cargo;
-pub mod bulkhead;
-pub mod bulk_cargo;
-pub mod container;
-pub mod summary;
-mod table;
-//
+
 enum Title {
     Summary,
     BallastTanks,
@@ -54,7 +54,6 @@ impl Title {
 }
 //
 pub struct Displacement {
-    dbg: Dbg,
     title: String,
     summary: Summary,
     ballast_tank: Tank,
@@ -64,35 +63,10 @@ pub struct Displacement {
     bulk_cargo: BulkCargo,
     container: Container,
     general_cargo: Cargo,
+    icing: Icing,
 }
-
 //
 impl Displacement {
-    pub fn new(    
-        dbg: Dbg,
-        title: String,
-        summary: Summary,
-        ballast_tank: Tank,
-        stores_tank: Tank,
-        stores: Cargo,
-        bulkhead: Bulkhead,
-        bulk_cargo: BulkCargo,
-        container: Container,
-        general_cargo: Cargo,
-    ) -> Self {
-        Self {
-            dbg,
-            title,
-            summary,
-            ballast_tank,
-            stores_tank,
-            stores,
-            bulkhead,
-            bulk_cargo,
-            container,
-            general_cargo,
-        }
-    }
     //
     pub fn new_named(
         parent: &Dbg,
@@ -115,7 +89,6 @@ impl Displacement {
             "Водоизмещение"
         }.to_owned();
         Ok(Self {
-            dbg: dbg.clone(),
             title,
             summary: crate::content::displacement::summary::Summary::from(
                 &dbg,
@@ -166,7 +139,13 @@ impl Displacement {
                 Title::GeneralCargo.val(language),
                 language,
                 general_cargo
-            )?            
+            )?,
+            icing: crate::content::displacement::icing::Icing::from(
+                &dbg,
+                Title::GeneralCargo.val(language),
+                language, 
+                parameters_result,
+            )?, 
         })
     }    
     //
@@ -179,7 +158,12 @@ impl Displacement {
             "## " + &self.bulkhead.to_string()? + "\n" +
             "## " + &self.bulk_cargo.to_string()? + "\n" +
             "## " + &self.container.to_string()? + "\n" +
-            "## " + &self.general_cargo.to_string()? + "\n"
+            "## " + &self.general_cargo.to_string()? + "\n" +
+            "## " + &self.icing.to_string()? + "\n"
         )
     }
 }
+
+
+
+
