@@ -102,47 +102,40 @@ impl Displacement {
                 ship_wide,
             )?,
             ballast_tank: crate::content::displacement::tank::Tank::from(
-                &dbg,
                 Title::BallastTanks.val(language),
                 language,
                 ballast_tanks
-            )?,
+            ),
             stores_tank: crate::content::displacement::tank::Tank::from(
-                &dbg,
                 Title::StoresTanks.val(language),
                 language,
                 stores_tanks
-            )?,
+            ),
             stores: crate::content::displacement::cargo::Cargo::from(
-                &dbg,
                 Title::Stores.val(language),
                 language,
                 stores
-            )?,
+            ),
             bulkhead: crate::content::displacement::bulkhead::Bulkhead::from(
-                &dbg,
                 Title::Bulkheads.val(language),
                 language,
                 bulkheads
-            )?,
+            ),
             bulk_cargo: crate::content::displacement::bulk_cargo::BulkCargo::from(
-                &dbg,
                 Title::BulkCargo.val(language),
                 language,
                 bulk_cargo
-            )?,
+            ),
             container: crate::content::displacement::container::Container::from(
-                &dbg,
                 Title::Containers.val(language),
                 language,
                 container
-            )?,
+            ),
             general_cargo: crate::content::displacement::cargo::Cargo::from(
-                &dbg,
                 Title::GeneralCargo.val(language),
                 language,
                 general_cargo
-            )?,
+            ),
             icing: crate::content::displacement::icing::Icing::from(
                 &dbg,
                 Title::Icing.val(language),

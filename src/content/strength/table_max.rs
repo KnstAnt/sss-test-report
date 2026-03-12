@@ -1,9 +1,6 @@
-use sal_core::{dbg::Dbg, error::Error};
-
 use crate::content::misc::lang::Lang;
 
 pub struct TableMax {
-    dbg: Dbg,
     header: Vec<String>,
     // name, min, doc, calc, max, limit_%
     values: Vec<(String, f64, f64, f64, f64, f64)>,
@@ -12,19 +9,16 @@ pub struct TableMax {
 impl TableMax {
     // parameter_name, min, doc, calc, max, limit_%
     pub fn new(
-        parent: &Dbg,
         header: &[String],
         values: &[(String, f64, f64, f64, f64, f64)],
     ) -> Self {
         Self {
-            dbg: Dbg::new(parent, "TableMax"),
             header: header.iter().map(|s| s.to_string()).collect(),
             values: Vec::from(values),
         }
     }
     //
     pub fn new_header(
-        parent: &Dbg,
         language: &Lang,
         name: &str,
         values: &[(String, f64, f64, f64, f64, f64)],
@@ -52,10 +46,10 @@ impl TableMax {
                 "Статус".to_string(),
             ]
         };
-        Self::new(parent, &header, values)
+        Self::new(&header, values)
     }
     //
-    pub fn to_string(self) -> Result<String, Error> {
+    pub fn to_string(self) -> String {
         let mut string = self
             .header
             .iter()
@@ -88,6 +82,6 @@ impl TableMax {
                 min, target, result, max, delta_result_percent, limit_p as i32,
             );
         }
-        Ok(string)
+        string
     }
 }

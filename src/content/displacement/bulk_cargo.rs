@@ -1,23 +1,21 @@
 use crate::{
     content::{Content, misc::lang::Lang}, db::bulk_cargo::BulkCargoData
 };
-use sal_core::{dbg::Dbg, error::Error};
 use super::table::Table;
+use sal_core::error::Error;
 
 pub struct BulkCargo {
-    dbg: Dbg,
     title: String,
     table: Table,
 }
 //
 impl BulkCargo {
     //
-    pub fn new(dbg: Dbg, title: String, table: Table) -> Self {
-        Self { dbg, title, table }
+    pub fn new( title: String, table: Table) -> Self {
+        Self {title, table }
     }
     //
-    pub fn from(parent: &Dbg, title: String, language: &Lang, data: &[BulkCargoData]) -> Result<Self, Error> {
-        let dbg = Dbg::new(parent, "BulkCargo");
+    pub fn from(title: String, language: &Lang, data: &[BulkCargoData]) -> Self {
         let header = if *language == Lang::En { 
             vec!["Name", "Weight", "x_g [m]", "y_g [m]", "z_g [m]", "Grain moment [tm]"]
         } else {
@@ -36,7 +34,7 @@ impl BulkCargo {
                 )
             })
             .collect::<Vec<Vec<String>>>();
-        Ok(Self::new(dbg.clone(), title, Table::new(&dbg, &header, content)))
+        Self::new(title, Table::new(&header, content))
     }
 }
 //

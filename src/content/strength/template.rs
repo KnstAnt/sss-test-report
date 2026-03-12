@@ -1,11 +1,10 @@
-use sal_core::{dbg::Dbg, error::Error};
+use sal_core::error::Error;
 
 use crate::content::Content;
 use crate::content::misc::lang::Lang;
 use crate::content::misc::{Curve, ICurve};
 //
 pub struct Template {
-    dbg: Dbg, 
     language: Lang,
     header: String,
     short_name: String,
@@ -17,7 +16,6 @@ pub struct Template {
 impl Template {
     //
     pub fn new( 
-        parent: &Dbg, 
         language: &Lang,
         header: String,
         short_name: String,
@@ -26,7 +24,6 @@ impl Template {
         limit: &[(f64, f64, f64)],
     ) -> Self {
         Self {
-            dbg: Dbg::new(parent, "Template"),
             language: language.clone(),
             header,
             short_name,
@@ -50,7 +47,7 @@ impl Content for Template {
             // (fr, min, doc, calc, max, limit_%)
             values.push((fr, limit_min.value(x)?, target, result.value(x)?, limit_max.value(x)?, limit_p));
         };
-        let content = format!("### {}\n\n", self.header) + &super::table::Table::from(&self.dbg, &self.language, &self.short_name, &values).to_string()?;
+        let content = format!("### {}\n\n", self.header) + &super::table::Table::from(&self.language, &self.short_name, &values).to_string()?;
         Ok(content)
     } 
 }

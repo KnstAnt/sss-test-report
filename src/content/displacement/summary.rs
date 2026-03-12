@@ -6,7 +6,6 @@ use sal_core::{dbg::Dbg, error::Error};
 use std::collections::HashMap;
 
 pub struct Summary {
-    dbg: Dbg,
     title: String,
     table: Template,
 }
@@ -22,7 +21,6 @@ impl Summary {
     ) -> Result<Self, Error> {
         let dbg = Dbg::new(parent, "Summary");
         Ok(Self {
-            dbg: dbg.clone(),
             title,
             table: Template::from_parameters(&dbg, language, target, result, ship_wide)?,
         })

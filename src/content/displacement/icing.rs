@@ -67,7 +67,7 @@ impl Icing {
         let content = vec![ice_h, ice_v];
         Ok(Self::new(
             title,
-            Table::new(&dbg.clone(), &header, content),
+            Table::new(&header, content),
         ))
     }
 }

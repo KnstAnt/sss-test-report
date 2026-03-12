@@ -1,23 +1,21 @@
 use crate::{
     content::{Content, misc::lang::Lang}, db::bulkhead::BulkheadData
 };
-use sal_core::{dbg::Dbg, error::Error};
+use sal_core::error::Error;
 use super::table::Table;
 
 pub struct Bulkhead {
-    dbg: Dbg,
     title: String,
     table: Table,
 }
 //
 impl Bulkhead {
     //
-    pub fn new(dbg: Dbg, title: String, table: Table) -> Self {
-        Self { dbg, title, table }
+    pub fn new(title: String, table: Table) -> Self {
+        Self {title, table }
     }
     //
-    pub fn from(parent: &Dbg, title: String, language: &Lang, data: &[BulkheadData]) -> Result<Self, Error> {
-        let dbg = Dbg::new(parent, "Bulkhead");
+    pub fn from(title: String, language: &Lang, data: &[BulkheadData]) -> Self {
         let header = if *language == Lang::En { 
             vec!["Name", "Position", "Weight", "x_g [m]", "y_g [m]", "z_g [m]",]
         } else {
@@ -36,7 +34,7 @@ impl Bulkhead {
                 )
             })
             .collect::<Vec<Vec<String>>>();
-        Ok(Self::new(dbg.clone(), title, Table::new(&dbg, &header, content)))
+        Self::new(title, Table::new(&header, content))
     }
 }
 //

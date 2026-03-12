@@ -1,21 +1,26 @@
 use super::table::Table;
-use crate::{content::{Content, misc::lang::Lang}, db::tank::TankData};
-use sal_core::{dbg::Dbg, error::Error};
+use crate::{
+    content::{misc::lang::Lang, Content},
+    db::tank::TankData,
+};
+use sal_core::error::Error;
 
 pub struct Tank {
-    dbg: Dbg,
     title: String,
     table: Table,
 }
 //
 impl Tank {
     //
-    pub fn new(dbg: Dbg, title: String, table: Table) -> Self {
-        Self { dbg, title, table }
+    pub fn new(title: String, table: Table) -> Self {
+        Self { title, table }
     }
     //
-    pub fn from(parent: &Dbg, title: String, language: &Lang, data: &[TankData]) -> Result<Self, Error> {
-        let dbg = Dbg::new(parent, "Tank");
+    pub fn from(
+        title: String,
+        language: &Lang,
+        data: &[TankData],
+    ) -> Self {
         let header = if *language == Lang::En {
             vec![
                 "Name",
@@ -59,11 +64,14 @@ impl Tank {
                 ]
             })
             .collect::<Vec<Vec<String>>>();
-        Ok(Self::new(dbg.clone(), title, Table::new(&dbg, &header, content)))
+        Self::new(
+            title,
+            Table::new(&header, content),
+        )
     }
 }
 //
-impl Content for Tank {    
+impl Content for Tank {
     fn to_string(self) -> Result<String, Error> {
         Ok(format!("{}\n\n{}", self.title, self.table.to_string()))
     }

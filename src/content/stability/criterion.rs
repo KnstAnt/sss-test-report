@@ -5,7 +5,6 @@ use super::template::Template;
 
 
 pub struct Criterion {
-    dbg: Dbg,
     title: String,
     table: Template,
 }
@@ -18,17 +17,15 @@ impl Criterion {
         result: &HashMap<i32, CriteriaData>,
         ship_wide: f64,
     ) -> Result<Self, Error> {
-        let dbg = Dbg::new(parent, "Criterion");
         let title = if *language == Lang::En {
             "Criteria"
         } else  {
             "Критерии"
         }.to_owned();
         Ok(Self {
-            dbg: dbg.clone(),
             title,
             table: Template::from_criterion(
-                &dbg,
+                &Dbg::new(parent, "Criterion"),
                 language,
                 &target.clone().into_iter().skip(1).collect::<Vec<_>>(),
                 result,

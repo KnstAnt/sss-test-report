@@ -8,16 +8,14 @@ use std::collections::HashMap;
 
 //
 pub struct Template {
-    dbg: Dbg,
     header: Vec<String>,
     data: Vec<TableUnit>,
     ship_wide: f64,
 }
 //
 impl Template {
-    pub fn new(dbg: Dbg, header: &[&str], data: &[TableUnit], ship_wide: f64) -> Self {
+    pub fn new(header: &[&str], data: &[TableUnit], ship_wide: f64) -> Self {
         Self {
-            dbg,
             header: header.iter().map(|s| s.to_string()).collect(),
             data: Vec::from(data),
             ship_wide,
@@ -25,7 +23,6 @@ impl Template {
     }
     //
     pub fn from(
-        dbg: Dbg,
         language: &Lang,
         data: &mut [TableUnit],
         ship_wide: f64,
@@ -64,7 +61,7 @@ impl Template {
         data.into_iter().for_each(|v| {
             v.limit_percent = v.limit_percent.take().map(|v| v.replace(src, trg));
         });
-        Ok(Self::new(dbg, &header, &data, ship_wide))
+        Ok(Self::new(&header, &data, ship_wide))
     }
     //
     pub fn from_parameters(
@@ -81,7 +78,7 @@ impl Template {
                 data.push(row);
             }
         }
-        Self::from(dbg, language, &mut data, ship_wide)
+        Self::from(language, &mut data, ship_wide)
     }
     //
     pub fn from_criterion(
@@ -98,7 +95,7 @@ impl Template {
                 data.push(row);
             }
         }
-        Self::from(dbg, language, &mut data, ship_wide)
+        Self::from( language, &mut data, ship_wide)
     }
 }
 //

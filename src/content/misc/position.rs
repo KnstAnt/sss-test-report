@@ -31,6 +31,7 @@ impl Position {
         self.z
     }
     //
+    #[allow(unused)]
     pub fn values(&self) -> [f64; 3] {
         [self.x, self.y, self.z]
     }   
@@ -40,6 +41,7 @@ impl Position {
         (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
     }
     //
+    #[allow(unused)]
     pub fn print(&self) -> String {
         format!("({:.3} {:.3} {:.3})", self.x, self.y, self.z)
     }

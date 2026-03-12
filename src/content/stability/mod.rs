@@ -14,7 +14,6 @@ pub mod parameters;
 pub mod criterion;
 
 pub struct Stability {
-    dbg: Dbg,
     title: String, 
     criterion: Criterion,
     lever_diagram: LeverDiagram,
@@ -23,14 +22,12 @@ pub struct Stability {
 //
 impl Stability {
     pub fn new(    
-        dbg: Dbg,
         title: String, 
         criterion: Criterion,
         lever_diagram: LeverDiagram,
         parameters: Parameters,
     ) -> Self {
         Self {
-            dbg,
             title, 
             criterion,
             lever_diagram,
@@ -56,7 +53,6 @@ impl Stability {
             "## Остойчивость"
         }.to_owned();
         Ok(Self::new(
-            dbg.clone(),
             title,
             Criterion::from(
                 &dbg,
@@ -66,7 +62,6 @@ impl Stability {
                 ship_wide,
             )?,
             LeverDiagram::from(
-                &dbg,
                 language,
                 lever_diagram_target,
                 lever_diagram_result,

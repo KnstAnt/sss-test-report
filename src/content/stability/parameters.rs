@@ -5,7 +5,6 @@ use super::template::Template;
 
 
 pub struct Parameters {
-    dbg: Dbg,
     title: String, 
     table: Template,
 }
@@ -25,7 +24,6 @@ impl Parameters {
             "Параметры остойчивости"
         }.to_owned();
         Ok(Self {
-            dbg: dbg.clone(),
             title,
             table: Template::from_parameters(
                 &dbg,

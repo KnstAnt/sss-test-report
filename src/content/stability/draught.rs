@@ -5,7 +5,6 @@ use super::template::Template;
 
 
 pub struct Draught {
-    dbg: Dbg,
     title: String,
     table: Template,
 }
@@ -18,17 +17,15 @@ impl Draught {
         result: &HashMap<i32, ParameterData>,
         ship_wide: f64,
     ) -> Result<Self, Error> {
-        let dbg = Dbg::new(parent, "Draught");
         let title = if *language == Lang::En {
             "Draft parameters"
         } else  {
             "Параметры посадки"
         }.to_owned();
         Ok(Self {
-            dbg: dbg.clone(),
             title,
             table: Template::from_parameters(
-                &dbg,
+                &Dbg::new(parent, "Draught"),
                 language,
                 target,
                 result,

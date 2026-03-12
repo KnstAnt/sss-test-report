@@ -10,7 +10,6 @@ use std::io::*;
 mod conf;
 mod content;
 mod db;
-mod formatter;
 mod parser;
 
 fn main() {

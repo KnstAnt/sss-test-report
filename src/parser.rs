@@ -277,7 +277,6 @@ impl Report {
             self.ship_wide.unwrap(),
         )?.to_string().map_err(|e| error.pass(e))? + "\n");        
         content += &(Strength::new_named(
-                &self.dbg,
                 &language,
                 &self.strength_result,
                 &self.strength_target,

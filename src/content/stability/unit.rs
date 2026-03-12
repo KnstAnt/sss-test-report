@@ -7,7 +7,6 @@ use crate::db::{criterion::CriteriaData, parameters::ParameterData};
 //
 #[derive(Debug, Clone)]
 pub struct TableUnit {
-    dbg: Dbg,
     pub id: i32,
     pub name: String,
     pub unit: String,
@@ -20,7 +19,6 @@ pub struct TableUnit {
 impl TableUnit {
     //
     pub fn new(
-        dbg: Dbg,
         id: i32,
         name: String,
         unit: String,
@@ -30,7 +28,6 @@ impl TableUnit {
         limit_abs: Option<String>,
     ) -> Self {
         Self {
-            dbg,
             id,
             name,
             unit,
@@ -75,7 +72,6 @@ impl TableUnit {
             return Err(error.err(format!("TableUnit from_parameters error: no data!")));
         };
         Ok(Self::new(
-            dbg,
             id,
             name,
             unit,
@@ -122,7 +118,6 @@ impl TableUnit {
             )));
         };
         Ok(Self::new(
-            dbg,
             id,
             name,
             unit,
