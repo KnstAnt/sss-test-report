@@ -11,6 +11,6 @@ api:
 #
 # API params
 data:
-    dir: "src/bin"
-    name: "SSS_Sofia_test1"
+    dir: "./bin"
+    name: "SSS_Sofia_test7"
 
